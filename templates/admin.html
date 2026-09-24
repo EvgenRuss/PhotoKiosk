@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель сотрудника — PhotoKiosk</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .upload-box { border: 2px dashed #007bff; padding: 20px; text-align: center; border-radius: 8px; background: #eef6ff; }
+        .btn-upload { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .order-card { background: #fff; border-left: 5px solid #007bff; padding: 15px; margin-bottom: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .order-card.completed { border-left-color: #28a745; opacity: 0.7; }
+        .btn-done { background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .photo-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 5px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠 Панель сотрудника</h1>
+
+        <!-- Массовая загрузка фото -->
+        <div class="card">
+            <h2>Загрузить фото с съемки (можно сразу несколько)</h2>
+            <form id="uploadForm" class="upload-box">
+                <input type="file" id="photoFiles" accept="image/*" multiple required style="font-size: 16px;">
+                <br>
+                <button type="submit" class="btn-upload">🚀 Загрузить фотографии</button>
+            </form>
+            <div id="message" style="margin-top: 10px; font-weight: bold;"></div>
+        </div>
+
+        <!-- Заказы -->
+        <div class="card">
+            <h2>Поступающие заказы</h2>
+            <div id="ordersList">Загрузка заказов...</div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('photoFiles');
+            const messageDiv = document.getElementById('message');
+
+            if (fileInput.files.length === 0) return;
+
+            const formData = new FormData();
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('files', fileInput.files[i]);
+            }
+
+            messageDiv.textContent = 'Идет загрузка файлов...';
+            messageDiv.style.color = 'black';
+
+            try {
+                const response = await fetch('/api/upload-photos', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    messageDiv.textContent = result.message;
+                    messageDiv.style.color = 'green';
+                    fileInput.value = '';
+                } else {
+                    messageDiv.textContent = 'Ошибка: ' + result.error;
+                    messageDiv.style.color = 'red';
+                }
+            } catch (err) {
+                messageDiv.textContent = 'Ошибка сети';
+                messageDiv.style.color = 'red';
+            }
+        });
+
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/api/orders');
+                const orders = await response.json();
+                const container = document.getElementById('ordersList');
+
+                if (orders.length === 0) {
+                    container.innerHTML = '<p style="color:#6c757d;">Заказов пока нет...</p>';
+                    return;
+                }
+
+                container.innerHTML = orders.slice().reverse().map(order => {
+                    const isDone = order.status === 'ВЫДАН';
+                    const itemsHtml = order.items.map(item => `
+                        <li>
+                            <img src="${item.photo_url}" class="photo-thumb">
+                            <b>${item.merch_name}</b> — ${item.price} ₽
+                        </li>
+                    `).join('');
+
+                    return `
+                        <div class="order-card ${isDone ? 'completed' : ''}">
+                            <div>
+                                <h3>Заказ #${order.id} <small>(${order.time})</small> — ${order.status}</h3>
+                                <ul style="list-style: none; padding: 0;">${itemsHtml}</ul>
+                                <strong>Итого: ${order.total} ₽</strong>
+                            </div>
+                            <div>
+                                ${!isDone ? `<button class="btn-done" onclick="completeOrder(${order.id})">Отметить "Выдан"</button>` : '<i>Завершено</i>'}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error("Ошибка загрузки заказов:", e);
+            }
+        }
+
+        async function completeOrder(id) {
+            await fetch('/api/orders/' + id + '/complete', { method: 'POST' });
+            fetchOrders();
+        }
+
+        setInterval(fetchOrders, 3000);
+        fetchOrders();
+    </script>
+</body>
+</html>
