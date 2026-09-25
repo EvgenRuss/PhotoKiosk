@@ -5,38 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Фотокиоск — Выбор Фото и Сувениров</title>
     <style>
-        :root {
-            --primary: #007bff;
-            --primary-hover: #0056b3;
-            --success: #28a745;
-            --danger: #dc3545;
-            --dark: #1e293b;
-            --light-bg: #f8fafc;
-        }
-
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
             margin: 0;
-            padding: 20px 20px 110px 20px;
+            padding: 20px 20px 100px 20px;
             text-align: center;
             user-select: none;
             -webkit-user-select: none;
-            color: #334155;
         }
-
-        h1 {
-            color: var(--dark);
-            margin-top: 10px;
-            font-size: 28px;
-            font-weight: 700;
-        }
-        .subtitle {
-            color: #64748b;
-            margin-bottom: 25px;
-            font-size: 16px;
-        }
-
+        h1 { color: #333; margin-top: 10px; }
+        .subtitle { color: #666; margin-bottom: 25px; }
+        
         /* ГАЛЕРЕЯ */
         .gallery {
             display: grid;
@@ -47,21 +27,21 @@
         }
         .photo-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
             cursor: pointer;
             position: relative;
             border: 4px solid transparent;
             aspect-ratio: 4 / 3;
         }
-        .photo-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        .photo-card:hover { 
+            transform: scale(1.03); 
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
         }
-        .photo-card.selected {
-            border-color: var(--primary);
+        .photo-card.selected { 
+            border-color: #007bff; 
         }
         .photo-card img {
             width: 100%;
@@ -69,31 +49,21 @@
             object-fit: cover;
             display: block;
         }
-        
-        /* Бейдж выбранных товаров на карточке */
         .badge-count {
             display: none;
             position: absolute;
             top: 10px;
             right: 10px;
-            background: var(--primary);
+            background: #007bff;
             color: white;
             border-radius: 20px;
-            padding: 4px 12px;
+            padding: 4px 10px;
             font-weight: bold;
             font-size: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            z-index: 2;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
-        .photo-card.selected .badge-count {
-            display: block;
-        }
-
-        #loading {
-            font-size: 18px;
-            color: #94a3b8;
-            margin-top: 50px;
-        }
+        .photo-card.selected .badge-count { display: block; }
+        #loading { font-size: 18px; color: #777; margin-top: 40px; }
 
         /* ПЛАВАЮЩАЯ ПАНЕЛЬ КОРЗИНЫ */
         .cart-bar {
@@ -104,32 +74,36 @@
             background: #ffffff;
             border-radius: 50px;
             padding: 12px 28px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
             display: flex;
             align-items: center;
-            gap: 24px;
-            z-index: 999;
-            border: 1px solid #e2e8f0;
+            gap: 25px;
+            z-index: 9999;
         }
         .cart-info {
             font-size: 18px;
             font-weight: 600;
-            color: var(--dark);
+            color: #333;
+            text-align: left;
+        }
+        .cart-total-price {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 20px;
         }
         .cart-btn {
-            background: var(--primary);
+            background: #007bff;
             color: white;
             border: none;
-            padding: 12px 28px;
+            padding: 12px 26px;
             border-radius: 30px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s;
         }
-        .cart-btn:hover { background: var(--primary-hover); }
-        .cart-btn:active { transform: scale(0.98); }
-        .cart-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .cart-btn:hover { background: #0056b3; }
+        .cart-btn:disabled { background: #ccc; cursor: not-allowed; }
 
         /* МОДАЛЬНЫЕ ОКНА */
         .modal {
@@ -139,145 +113,82 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.85);
             z-index: 99999;
             justify-content: center;
             align-items: center;
         }
-
-        /* МОДАЛКА ПРОСМОТРА И СУВЕНИРОВ */
-        .preview-box {
+        
+        .modal-box {
             background: white;
-            border-radius: 20px;
             width: 90%;
-            max-width: 1000px;
-            max-height: 90vh;
+            max-width: 900px;
+            max-height: 85vh;
+            border-radius: 18px;
+            padding: 25px;
+            overflow-y: auto;
+            text-align: left;
             display: flex;
-            flex-direction: row;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .product-select-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
         }
         @media (max-width: 768px) {
-            .preview-box {
-                flex-direction: column;
-                max-height: 95vh;
-                overflow-y: auto;
-            }
+            .product-select-layout { grid-template-columns: 1fr; }
         }
-        .preview-img-container {
-            flex: 1.2;
-            background: #0f172a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .preview-img-container img {
-            max-width: 100%;
-            max-height: 70vh;
+
+        .preview-img-large {
+            width: 100%;
+            height: 320px;
             object-fit: contain;
-            border-radius: 8px;
-        }
-        .souvenir-options {
-            flex: 1;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-            background: white;
-            overflow-y: auto;
-        }
-        .souvenir-options h2 {
-            margin-top: 0;
-            font-size: 22px;
-            color: var(--dark);
-        }
-        .souvenir-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 15px 0 25px 0;
-        }
-        .souvenir-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px;
-            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            background: #f8fafc;
+            background: #111;
         }
-        .souvenir-info {
+
+        .product-options-list {
             display: flex;
             flex-direction: column;
+            gap: 10px;
         }
-        .souvenir-title {
-            font-weight: 600;
-            font-size: 15px;
+
+        .product-option-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
         }
-        .counter-controls {
+        .option-name { font-weight: 600; color: #333; }
+        .option-price { color: #28a745; font-weight: bold; margin-left: 6px; }
+
+        .qty-controls {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .btn-counter {
+        .btn-qty {
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #007bff;
             background: white;
-            font-size: 18px;
+            color: #007bff;
             font-weight: bold;
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--dark);
         }
-        .btn-counter:active { background: #f1f5f9; }
-        .counter-value {
-            font-weight: bold;
-            font-size: 16px;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        /* МОДАЛКА КОРЗИНЫ */
-        .cart-modal-box {
-            background: white;
-            width: 90%;
-            max-width: 850px;
-            max-height: 85vh;
-            border-radius: 20px;
-            padding: 30px;
-            overflow-y: auto;
-            text-align: left;
-        }
-        .cart-item-card {
-            display: flex;
-            gap: 15px;
-            padding: 15px;
-            border-bottom: 1px solid #e2e8f0;
-            align-items: center;
-        }
-        .cart-item-thumb {
-            width: 80px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        .cart-item-details {
-            flex: 1;
-        }
-        .cart-item-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .cart-item-tags {
-            font-size: 13px;
-            color: #64748b;
-        }
+        .btn-qty:hover { background: #007bff; color: white; }
+        .qty-value { font-weight: bold; font-size: 16px; min-width: 20px; text-align: center; }
 
         .btn-modal {
             padding: 12px 24px;
@@ -287,9 +198,33 @@
             border: none;
             cursor: pointer;
         }
-        .btn-select { background: var(--success); color: white; }
-        .btn-close { background: #64748b; color: white; }
-        .btn-danger { background: var(--danger); color: white; }
+        .btn-confirm { background: #28a745; color: white; }
+        .btn-close { background: #6c757d; color: white; }
+
+        /* СПИСОК В КОРЗИНЕ */
+        .cart-items-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .cart-item-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            background: #fafafa;
+        }
+        .cart-item-row img {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-title { font-weight: bold; margin-bottom: 4px; }
+        .cart-item-sub { font-size: 14px; color: #666; }
 
         /* СПЯЩИЙ РЕЖИМ (КОЛЛАЖ 2x2) */
         #screensaver {
@@ -352,10 +287,10 @@
     <!-- Спящий режим -->
     <div id="screensaver" onclick="wakeUp(event)">
         <div class="collage-grid">
-            <div class="collage-cell" id="cell-0"><img class="img-a active" alt="Cell 0 A"><img class="img-b" alt="Cell 0 B"></div>
-            <div class="collage-cell" id="cell-1"><img class="img-a active" alt="Cell 1 A"><img class="img-b" alt="Cell 1 B"></div>
-            <div class="collage-cell" id="cell-2"><img class="img-a active" alt="Cell 2 A"><img class="img-b" alt="Cell 2 B"></div>
-            <div class="collage-cell" id="cell-3"><img class="img-a active" alt="Cell 3 A"><img class="img-b" alt="Cell 3 B"></div>
+            <div class="collage-cell" id="cell-0"><img class="img-a active"><img class="img-b"></div>
+            <div class="collage-cell" id="cell-1"><img class="img-a active"><img class="img-b"></div>
+            <div class="collage-cell" id="cell-2"><img class="img-a active"><img class="img-b"></div>
+            <div class="collage-cell" id="cell-3"><img class="img-a active"><img class="img-b"></div>
         </div>
         <div class="screensaver-overlay">
             <div class="screensaver-text">📸 Нажмите на экран, чтобы начать</div>
@@ -365,63 +300,73 @@
 
     <!-- Основной интерфейс -->
     <h1>📷 Выберите нужные фотографии</h1>
-    <p class="subtitle">Нажмите на фото, чтобы выбрать вариант сувенира или печати</p>
+    <p class="subtitle">Нажмите на фото, чтобы выбрать формат печати или сувениры</p>
 
     <div id="loading">Загрузка галереи...</div>
     <div class="gallery" id="gallery"></div>
 
     <!-- Нижняя панель Корзины -->
     <div class="cart-bar">
-        <div class="cart-info">Выбрано предметов: <span id="cart-count">0</span></div>
+        <div class="cart-info">
+            Товаров: <span id="cart-count">0</span> шт. <br>
+            Сумма: <span class="cart-total-price" id="cart-total">0 ₽</span>
+        </div>
         <button class="cart-btn" id="open-cart-btn" onclick="openCartModal()" disabled>Просмотреть корзину</button>
     </div>
 
-    <!-- Модальное окно просмотра фото и выбора сувениров -->
+    <!-- Модальное окно выбора сувениров для фото -->
     <div class="modal" id="preview-modal">
-        <div class="preview-box">
-            <div class="preview-img-container">
-                <img id="modal-img" src="" alt="Enlarged photo">
+        <div class="modal-box">
+            <h2>🛍️ Выберите варианты для этой фотографии</h2>
+            <div class="product-select-layout">
+                <div>
+                    <img id="modal-img" class="preview-img-large" src="" alt="Photo preview">
+                </div>
+                <div class="product-options-list" id="options-list">
+                    <!-- Заполняется динамически -->
+                </div>
             </div>
-            <div class="souvenir-options">
-                <h2>Выбор сувениров</h2>
-                <p style="font-size: 14px; color: #64748b;">Укажите количество нужных позиций для этого фото:</p>
-                
-                <div class="souvenir-list" id="souvenir-list">
-                    <!-- Заполняется динамически скриптом -->
-                </div>
-
-                <div style="margin-top: auto; display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="btn-modal btn-close" onclick="closePreviewModal()">Сохранить и закрыть</button>
-                </div>
+            <div style="text-align: right; margin-top: 15px;">
+                <button class="btn-modal btn-confirm" onclick="closePreviewModal()">Готово</button>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно самой Корзины -->
+    <!-- Модальное окно просмотра Корзины -->
     <div class="modal" id="cart-modal">
-        <div class="cart-modal-box">
-            <h2>🛒 Содержимое корзины</h2>
-            <div id="cart-items-container"></div>
-            <div style="text-align: right; margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn-modal btn-close" onclick="closeCartModal()">Вернуться к фото</button>
-                <button class="btn-modal btn-select" onclick="submitOrder()">Завершить заказ</button>
+        <div class="modal-box">
+            <h2>🛒 Ваша корзина</h2>
+            <div class="cart-items-container" id="cart-items-container">
+                <!-- Заполняется динамически -->
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <div style="font-size: 20px; font-weight: bold;">
+                    Итого к оплате: <span class="cart-total-price" id="cart-modal-total">0 ₽</span>
+                </div>
+                <div>
+                    <button class="btn-modal btn-close" onclick="closeCartModal()">Вернуться</button>
+                    <button class="btn-modal btn-confirm" onclick="submitOrder()">Завершить выбор</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Типы доступных сувениров
-        const SOUVENIR_TYPES = [
-            { id: 'print_10x15', name: '📸 Фотопечать 10x15' },
-            { id: 'magnet', name: '🧲 Магнит на холодильник' },
-            { id: 'mug', name: '☕ Керамическая кружка' },
-            { id: 'puzzle', name: '🧩 Фото-пазл' },
-            { id: 'canvas', name: '🖼️ Холст на подрамнике' }
+        // АССОРТИМЕНТ И ЦЕНЫ
+        const PRODUCTS = [
+            { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500 },
+            { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700 },
+            { id: 'frame_15x20', name: '🖼️ Рамка 15x20', price: 900 },
+            { id: 'photo_from_magnet', name: '📷 Фото из магнита', price: 300 },
+            { id: 'photo_10x15', name: '📷 Фото 10x15', price: 450 },
+            { id: 'photo_15x20', name: '📷 Фото 15x20', price: 600 },
+            { id: 'photo_a4_calendar', name: '🖼️ Фото А4 / Календарь / Коллаж', price: 750 },
+            { id: 'mug', name: '☕ Кружка', price: 900 },
+            { id: 'digital_photo', name: '💾 Электронное фото', price: 300 }
         ];
 
         let currentPhotos = [];
-        // Структура корзины: { [photoId]: { [souvenirId]: count } }
-        let cartState = {}; 
+        let cart = {};
         let activePhotoId = null;
 
         // 1. ЗАГРУЗКА ГАЛЕРЕИ
@@ -441,51 +386,46 @@
                 }
                 
                 loading.style.display = 'none';
-                renderGallery();
+                gallery.innerHTML = '';
+                
+                currentPhotos.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.className = 'photo-card';
+                    card.dataset.id = photo.id;
+                    
+                    const totalQty = getPhotoTotalQty(photo.id);
+                    if (totalQty > 0) card.classList.add('selected');
+
+                    card.onclick = (e) => {
+                        e.stopPropagation();
+                        openPreviewModal(photo.id);
+                        resetIdleTimer();
+                    };
+                    
+                    const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
+                    
+                    card.innerHTML = `
+                        <div class="badge-count">${totalQty} шт.</div>
+                        <img src="${imgUrl}" alt="Photo" loading="lazy">
+                    `;
+                    gallery.appendChild(card);
+                });
+
+                updateCartUI();
             } catch (error) {
                 console.error('Ошибка загрузки галереи:', error);
             }
         }
 
-        function renderGallery() {
-            const gallery = document.getElementById('gallery');
-            gallery.innerHTML = '';
+        loadPhotos();
+        setInterval(loadPhotos, 10000);
 
-            currentPhotos.forEach(photo => {
-                const card = document.createElement('div');
-                card.className = 'photo-card';
-                card.dataset.id = photo.id;
-
-                const totalItemsForPhoto = getPhotoTotalItems(photo.id);
-                if (totalItemsForPhoto > 0) {
-                    card.classList.add('selected');
-                }
-
-                card.onclick = (e) => {
-                    e.stopPropagation();
-                    openPreviewModal(photo.id);
-                    resetIdleTimer();
-                };
-
-                const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
-
-                card.innerHTML = `
-                    <div class="badge-count">${totalItemsForPhoto} шт.</div>
-                    <img src="${imgUrl}" alt="Photo" loading="lazy">
-                `;
-                gallery.appendChild(card);
-            });
-
-            updateCartUI();
+        function getPhotoTotalQty(photoId) {
+            if (!cart[photoId]) return 0;
+            return Object.values(cart[photoId]).reduce((a, b) => a + b, 0);
         }
 
-        // Подсчет общего количества позиций для одной фотографии
-        function getPhotoTotalItems(photoId) {
-            if (!cartState[photoId]) return 0;
-            return Object.values(cartState[photoId]).reduce((acc, count) => acc + count, 0);
-        }
-
-        // 2. УПРАВЛЕНИЕ СУВЕНИРАМИ И МОДАЛКОЙ ПРОСМОТРА
+        // 2. ВЫБОР СУВЕНИРОВ ДЛЯ ФОТО
         function openPreviewModal(id) {
             activePhotoId = id;
             const photo = currentPhotos.find(p => p.id === id);
@@ -493,118 +433,139 @@
 
             document.getElementById('modal-img').src = photo.url || photo.path;
             
-            renderSouvenirList();
+            if (!cart[activePhotoId]) {
+                cart[activePhotoId] = {};
+            }
+
+            renderOptionsList();
             document.getElementById('preview-modal').style.display = 'flex';
+        }
+
+        function renderOptionsList() {
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+
+            PRODUCTS.forEach(prod => {
+                const qty = cart[activePhotoId][prod.id] || 0;
+                
+                const item = document.createElement('div');
+                item.className = 'product-option-item';
+                item.innerHTML = `
+                    <div>
+                        <span class="option-name">${prod.name}</span>
+                        <span class="option-price">${prod.price} ₽</span>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="changeQty('${prod.id}', -1)">-</button>
+                        <span class="qty-value">${qty}</span>
+                        <button class="btn-qty" onclick="changeQty('${prod.id}', 1)">+</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function changeQty(productId, delta) {
+            if (!cart[activePhotoId]) cart[activePhotoId] = {};
+            
+            const currentQty = cart[activePhotoId][productId] || 0;
+            const newQty = Math.max(0, currentQty + delta);
+            
+            if (newQty === 0) {
+                delete cart[activePhotoId][productId];
+            } else {
+                cart[activePhotoId][productId] = newQty;
+            }
+
+            renderOptionsList();
+            updateGalleryCards();
+            updateCartUI();
         }
 
         function closePreviewModal() {
             document.getElementById('preview-modal').style.display = 'none';
             activePhotoId = null;
-            renderGallery();
         }
 
-        function renderSouvenirList() {
-            const container = document.getElementById('souvenir-list');
-            container.innerHTML = '';
-
-            if (!cartState[activePhotoId]) {
-                cartState[activePhotoId] = {};
-            }
-
-            SOUVENIR_TYPES.forEach(type => {
-                const count = cartState[activePhotoId][type.id] || 0;
+        function updateGalleryCards() {
+            document.querySelectorAll('.photo-card').forEach(card => {
+                const id = card.dataset.id;
+                const qty = getPhotoTotalQty(id);
+                const badge = card.querySelector('.badge-count');
                 
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'souvenir-item';
-                itemDiv.innerHTML = `
-                    <div class="souvenir-info">
-                        <span class="souvenir-title">${type.name}</span>
-                    </div>
-                    <div class="counter-controls">
-                        <button class="btn-counter" onclick="changeQuantity('${type.id}', -1)">-</button>
-                        <span class="counter-value">${count}</span>
-                        <button class="btn-counter" onclick="changeQuantity('${type.id}', 1)">+</button>
-                    </div>
-                `;
-                container.appendChild(itemDiv);
+                if (qty > 0) {
+                    card.classList.add('selected');
+                    if (badge) badge.innerText = `${qty} шт.`;
+                } else {
+                    card.classList.remove('selected');
+                }
             });
         }
 
-        function changeQuantity(souvenirId, delta) {
-            if (!activePhotoId) return;
+        // 3. ПОДСЧЕТ И КОРЗИНА
+        function calculateTotal() {
+            let totalItems = 0;
+            let totalPrice = 0;
 
-            if (!cartState[activePhotoId]) {
-                cartState[activePhotoId] = {};
-            }
-
-            const current = cartState[activePhotoId][souvenirId] || 0;
-            const updated = Math.max(0, current + delta);
-
-            if (updated === 0) {
-                delete cartState[activePhotoId][souvenirId];
-            } else {
-                cartState[activePhotoId][souvenirId] = updated;
-            }
-
-            renderSouvenirList();
-            updateCartUI();
-        }
-
-        // 3. УПРАВЛЕНИЕ КОРЗИНОЙ
-        function getTotalCartCount() {
-            let total = 0;
-            Object.keys(cartState).forEach(photoId => {
-                total += getPhotoTotalItems(photoId);
+            Object.keys(cart).forEach(photoId => {
+                Object.keys(cart[photoId]).forEach(prodId => {
+                    const qty = cart[photoId][prodId];
+                    const product = PRODUCTS.find(p => p.id === prodId);
+                    if (product && qty > 0) {
+                        totalItems += qty;
+                        totalPrice += product.price * qty;
+                    }
+                });
             });
-            return total;
+
+            return { totalItems, totalPrice };
         }
 
         function updateCartUI() {
-            const totalCount = getTotalCartCount();
-            document.getElementById('cart-count').innerText = totalCount;
-            document.getElementById('open-cart-btn').disabled = totalCount === 0;
+            const { totalItems, totalPrice } = calculateTotal();
+            document.getElementById('cart-count').innerText = totalItems;
+            document.getElementById('cart-total').innerText = `${totalPrice.toLocaleString()} ₽`;
+            document.getElementById('open-cart-btn').disabled = totalItems === 0;
         }
 
         function openCartModal() {
             const container = document.getElementById('cart-items-container');
             container.innerHTML = '';
 
-            const activePhotoIds = Object.keys(cartState).filter(id => getPhotoTotalItems(id) > 0);
+            let hasItems = false;
 
-            if (activePhotoIds.length === 0) {
-                container.innerHTML = '<p style="color: #64748b;">Ваша корзина пуста.</p>';
-            } else {
-                activePhotoIds.forEach(photoId => {
-                    const photo = currentPhotos.find(p => p.id === photoId);
-                    if (!photo) return;
+            Object.keys(cart).forEach(photoId => {
+                const photo = currentPhotos.find(p => p.id === photoId);
+                const photoCart = cart[photoId];
+                if (!photo || !photoCart) return;
 
-                    const souvenirDetails = Object.entries(cartState[photoId])
-                        .map(([sId, count]) => {
-                            const souvenir = SOUVENIR_TYPES.find(s => s.id === sId);
-                            return `${souvenir ? souvenir.name : sId}: <b>${count} шт.</b>`;
-                        })
-                        .join('<br>');
+                const itemsText = Object.keys(photoCart).map(prodId => {
+                    const prod = PRODUCTS.find(p => p.id === prodId);
+                    const qty = photoCart[prodId];
+                    return `${prod.name} × ${qty} шт. (${prod.price * qty} ₽)`;
+                }).join('<br>');
 
-                    const itemCard = document.createElement('div');
-                    itemCard.className = 'cart-item-card';
-                    itemCard.innerHTML = `
-                        <img src="${photo.url || photo.path}" class="cart-item-thumb" alt="Thumb">
+                if (itemsText) {
+                    hasItems = true;
+                    const row = document.createElement('div');
+                    row.className = 'cart-item-row';
+                    row.innerHTML = `
+                        <img src="${photo.url || photo.path}" alt="Photo">
                         <div class="cart-item-details">
-                            <div class="cart-item-tags">${souvenirDetails}</div>
+                            <div class="cart-item-sub">${itemsText}</div>
                         </div>
-                        <button class="btn-modal btn-danger" style="padding: 6px 12px; font-size: 14px;" onclick="removePhotoFromCart('${photoId}')">Удалить</button>
                     `;
-                    container.appendChild(itemCard);
-                });
+                    container.appendChild(row);
+                }
+            });
+
+            if (!hasItems) {
+                container.innerHTML = '<div>Корзина пуста</div>';
             }
 
+            const { totalPrice } = calculateTotal();
+            document.getElementById('cart-modal-total').innerText = `${totalPrice.toLocaleString()} ₽`;
             document.getElementById('cart-modal').style.display = 'flex';
-        }
-
-        function removePhotoFromCart(photoId) {
-            delete cartState[photoId];
-            openCartModal();
-            renderGallery();
         }
 
         function closeCartModal() {
@@ -612,10 +573,12 @@
         }
 
         function submitOrder() {
-            alert('Спасибо за заказ! Данные успешно переданы в обработку.');
-            cartState = {};
+            const { totalPrice, totalItems } = calculateTotal();
+            alert(`Спасибо за заказ!\nВыбрано товаров: ${totalItems} шт.\nСумма к оплате: ${totalPrice.toLocaleString()} ₽`);
+            cart = {};
             closeCartModal();
-            renderGallery();
+            updateGalleryCards();
+            updateCartUI();
         }
 
         // 4. СЛАЙД-ШОУ В СПЯЩЕМ РЕЖИМЕ (КОЛЛАЖ 2x2)
@@ -667,10 +630,11 @@
         const screensaver = document.getElementById('screensaver');
 
         function startSleep() {
-            cartState = {};
+            cart = {};
+            updateGalleryCards();
+            updateCartUI();
             closePreviewModal();
             closeCartModal();
-            renderGallery();
             screensaver.style.display = 'block';
             startSlideshow();
         }
@@ -690,9 +654,6 @@
         document.addEventListener('click', resetIdleTimer);
         document.addEventListener('touchstart', resetIdleTimer);
 
-        // Инициализация
-        loadPhotos();
-        setInterval(loadPhotos, 10000);
         resetIdleTimer();
     </script>
 </body>
