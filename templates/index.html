@@ -405,26 +405,41 @@
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
-                currentPhotos = await response.json();
+                const rawPhotos = await response.json();
                 
+                // Фильтруем дубликаты по id / filename
+                const uniqueMap = new Map();
+                rawPhotos.forEach(p => {
+                    if (!uniqueMap.has(p.id)) {
+                        uniqueMap.set(p.id, p);
+                    }
+                });
+                const photos = Array.from(uniqueMap.values());
+
+                // Перерисовываем галерею только если изменился состав фотографий
+                if (JSON.stringify(photos.map(p => p.id)) === JSON.stringify(currentPhotos.map(p => p.id))) {
+                    return;
+                }
+
+                currentPhotos = photos;
                 const gallery = document.getElementById('gallery');
                 const loading = document.getElementById('loading');
-                
+
                 if (currentPhotos.length === 0) {
                     gallery.innerHTML = '';
                     loading.innerText = 'В папке пока нет доступных фотографий.';
                     loading.style.display = 'block';
                     return;
                 }
-                
+
                 loading.style.display = 'none';
                 gallery.innerHTML = '';
-                
+
                 currentPhotos.forEach(photo => {
                     const card = document.createElement('div');
                     card.className = 'photo-card';
                     card.dataset.id = photo.id;
-                    
+
                     const totalQty = getPhotoTotalQty(photo.id);
                     if (totalQty > 0) card.classList.add('selected');
 
@@ -433,9 +448,9 @@
                         openPreviewModal(photo.id);
                         resetIdleTimer();
                     };
-                    
+
                     const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
-                    
+
                     card.innerHTML = `
                         <div class="badge-count">${totalQty} шт.</div>
                         <img src="${imgUrl}" alt="Photo" loading="lazy">
