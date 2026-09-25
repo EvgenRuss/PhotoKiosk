@@ -22,9 +22,9 @@ def get_google_drive_photos():
             if file.get('mimeType', '').startswith('image/'):
                 photos.append({
                     'id': file['id'],
+                    'filename': file['name'],
                     'name': file['name'],
-                    # Прямая ссылка для отображения файла из Google Drive
-                    'url': f"https://lh3.googleusercontent.com/d/{file['id']}"
+                    'url': f"https://drive.google.com/thumbnail?id={file['id']}&sz=w1000"
                 })
         return photos
     except Exception as e:
@@ -38,7 +38,7 @@ def index():
 
 @app.route('/api/photos')
 def api_photos():
-    """API эндпоинт для автообновления списка фото на клиенте"""
+    """API эндпоинт для автообновления галереи на клиенте"""
     photos = get_google_drive_photos()
     return jsonify(photos)
 
