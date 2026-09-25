@@ -66,7 +66,7 @@
         .photo-card.selected .checkmark { display: block; }
         #loading { font-size: 18px; color: #777; margin-top: 40px; }
 
-        /* СПЯЩИЙ РЕЖИМ (КОЛЛАЖ ИЗ 4 ФОТО) */
+        /* СПЯЩИЙ РЕЖИМ (ПОЛНЫЙ РАЗМЕР БЕЗ ОБРЕЗКИ) */
         #screensaver {
             position: fixed;
             top: 0;
@@ -95,15 +95,17 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            background-color: #111;
         }
 
+        /* Картинки отображаются полностью без обрезки */
         .collage-cell img {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* Отображает фото целиком */
             opacity: 0;
             transition: opacity 1s ease-in-out;
         }
@@ -112,7 +114,7 @@
             opacity: 1;
         }
 
-        /* Полупрозрачная плашка с инструкцией */
+        /* Информационная плашка */
         .screensaver-overlay {
             position: absolute;
             bottom: 0;
@@ -140,7 +142,7 @@
 </head>
 <body>
 
-    <!-- Спящий режим: сетка 2x2 -->
+    <!-- Спящий режим: сетка 2x2 без обрезки -->
     <div id="screensaver" onclick="wakeUp(event)">
         <div class="collage-grid">
             <div class="collage-cell" id="cell-0">
@@ -262,12 +264,10 @@
             if (currentPhotos.length === 0) return;
             
             photoPointer = 0;
-            // Инициализация первых 4 кадров
             for (let i = 0; i < 4; i++) {
                 updateCell(i);
             }
 
-            // Каждые 3 секунды случайно меняется одна из 4 ячеек
             slideshowInterval = setInterval(() => {
                 const randomCell = Math.floor(Math.random() * 4);
                 updateCell(randomCell);
