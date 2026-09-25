@@ -1,4 +1,5 @@
 import os
+import json
 import time
 from flask import Flask, render_template, jsonify, request
 from werkzeug.utils import secure_filename
@@ -10,10 +11,32 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Файл для постоянного хранения заказов
+ORDERS_FILE = 'orders.json'
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 
-# Хранилище заказов в памяти
-orders = []
+def load_orders_from_file():
+    """Загрузка заказов из файла при запуске"""
+    if os.path.exists(ORDERS_FILE):
+        try:
+            with open(ORDERS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            print("Ошибка чтения orders.json:", e)
+            return []
+    return []
+
+def save_orders_to_file():
+    """Сохранение всех заказов в файл"""
+    try:
+        with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(orders, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print("Ошибка сохранения orders.json:", e)
+
+# Инициализация заказов при старте сервера
+orders = load_orders_from_file()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -43,7 +66,7 @@ def get_photos():
                 })
     return jsonify(photos)
 
-# 4. API: Загрузка новых фото (из админки)
+# 4. API: Загрузка новых фото
 @app.route('/api/upload', methods=['POST'])
 def upload_photos():
     if 'files' not in request.files:
@@ -61,7 +84,7 @@ def upload_photos():
             
     return jsonify({'success': True, 'uploaded': uploaded})
 
-# 5. API: Удаление фото (из админки)
+# 5. API: Удаление фото
 @app.route('/api/photos/<filename>', methods=['DELETE'])
 def delete_photo(filename):
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
@@ -72,7 +95,7 @@ def delete_photo(filename):
 
 # --- API ДЛЯ РАБОТЫ С ЗАКАЗАМИ ---
 
-# 6. API: Создание нового заказа (из киоска)
+# 6. API: Создание нового заказа
 @app.route('/api/orders', methods=['POST'])
 def create_order():
     data = request.json
@@ -91,15 +114,17 @@ def create_order():
         'items': data.get('items', [])
     }
     
-    orders.insert(0, new_order)  # Новые заказы помещаются наверх
+    orders.insert(0, new_order)  # Новые заказы наверху списка
+    save_orders_to_file()        # Запись в файл
+    
     return jsonify({'success': True, 'order': new_order})
 
-# 7. API: Получение списка всех заказов (для админки)
+# 7. API: Получение списка всех заказов
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
     return jsonify(orders)
 
-# 8. API: Обновление статуса заказа (из админки)
+# 8. API: Обновление статуса заказа
 @app.route('/api/orders/<order_id>/status', methods=['POST'])
 def update_order_status(order_id):
     data = request.json
@@ -112,6 +137,8 @@ def update_order_status(order_id):
                 ord['statusText'] = 'Печатается'
             elif new_status == 'done':
                 ord['statusText'] = 'Выдан'
+            
+            save_orders_to_file() # Обновление файла
             return jsonify({'success': True, 'order': ord})
             
     return jsonify({'error': 'Заказ не найден'}), 404
