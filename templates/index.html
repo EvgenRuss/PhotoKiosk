@@ -11,7 +11,7 @@
             margin: 0;
             padding: 20px;
             text-align: center;
-            user-select: none; /* Защита от выделения текста на тачскрине */
+            user-select: none;
         }
         h1 { color: #333; margin-top: 10px; }
         .subtitle { color: #666; margin-bottom: 20px; }
@@ -65,42 +65,43 @@
         .photo-card.selected .checkmark { display: block; }
         #loading { font-size: 18px; color: #777; margin-top: 40px; }
 
-        /* СТИЛИ ДЛЯ СПЯЩЕГО РЕЖИМА (SCREENSAVER) */
+        /* ЭКРАН СПЯЩЕГО РЕЖИМА */
         #screensaver {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 99999;
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            cursor: pointer;
         }
         #screensaver.active {
             opacity: 1;
-            pointer-events: auto;
+            visibility: visible;
         }
         .screensaver-icon {
-            font-size: 80px;
+            font-size: 90px;
             margin-bottom: 20px;
             animation: pulse 2s infinite;
         }
         .screensaver-text {
-            font-size: 32px;
-            font-weight: 300;
+            font-size: 34px;
+            font-weight: 400;
             letter-spacing: 1px;
+            margin-bottom: 10px;
         }
         .screensaver-subtext {
             font-size: 18px;
-            opacity: 0.8;
-            margin-top: 15px;
+            opacity: 0.7;
         }
 
         @keyframes pulse {
@@ -113,7 +114,7 @@
 <body>
 
     <!-- Экран спящего режима -->
-    <div id="screensaver">
+    <div id="screensaver" onclick="wakeUp()">
         <div class="screensaver-icon">📸</div>
         <div class="screensaver-text">Нажмите на экран, чтобы выбрать фото</div>
         <div class="screensaver-subtext">Фотокиоск готов к работе</div>
@@ -127,7 +128,7 @@
     <div class="gallery" id="gallery"></div>
 
     <script>
-        // 1. ЛОГИКА ГАЛЕРЕИ
+        // 1. ЗАГРУЗКА ГАЛЕРЕИ
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
@@ -166,30 +167,36 @@
         }
 
         loadPhotos();
-        setInterval(loadPhotos, 10000); // Автообновление раз в 10 сек
+        setInterval(loadPhotos, 10000);
 
-        // 2. ЛОГИКА СПЯЩЕГО РЕЖИМА
+        // 2. СПЯЩИЙ РЕЖИМ (15 СЕКУНД)
         let idleTimer;
-        const IDLE_TIME_SECONDS = 30; // Время бездействия (в секундах) до ухода в сон
+        const IDLE_TIMEOUT = 15000; // 15 секунд
         const screensaver = document.getElementById('screensaver');
+
+        function wakeUp() {
+            screensaver.classList.remove('active');
+            resetTimer();
+        }
 
         function showScreensaver() {
             screensaver.classList.add('active');
         }
 
-        function resetIdleTimer() {
-            screensaver.classList.remove('active');
+        function resetTimer() {
             clearTimeout(idleTimer);
-            idleTimer = setTimeout(showScreensaver, IDLE_TIME_SECONDS * 1000);
+            if (!screensaver.classList.contains('active')) {
+                idleTimer = setTimeout(showScreensaver, IDLE_TIMEOUT);
+            }
         }
 
-        // Отслеживаем любые действия пользователя (клики, касания, движение мыши, нажатия клавиш)
-        window.onload = resetIdleTimer;
-        window.onmousemove = resetIdleTimer;
-        window.onmousedown = resetIdleTimer;
-        window.ontouchstart = resetIdleTimer;
-        window.onclick = resetIdleTimer;
-        window.onkeypress = resetIdleTimer;
+        // Отслеживание действий на странице
+        ['mousemove', 'mousedown', 'touchstart', 'scroll', 'keydown', 'click'].forEach(eventName => {
+            document.addEventListener(eventName, resetTimer, true);
+        });
+
+        // Запуск таймера при загрузке
+        resetTimer();
     </script>
 </body>
 </html>
