@@ -40,7 +40,10 @@ def index():
 def api_photos():
     """API эндпоинт для автообновления галереи на клиенте"""
     photos = get_google_drive_photos()
-    return jsonify(photos)
+    response = jsonify(photos)
+    # Разрешаем фоновые запросы без блокировки CORS
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 @app.route('/employee')
 def employee():
