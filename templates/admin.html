@@ -2,122 +2,321 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель сотрудника — PhotoKiosk</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .upload-box { border: 2px dashed #007bff; padding: 20px; text-align: center; border-radius: 8px; background: #eef6ff; }
-        .btn-upload { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .order-card { background: #fff; border-left: 5px solid #007bff; padding: 15px; margin-bottom: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .order-card.completed { border-left-color: #28a745; opacity: 0.7; }
-        .btn-done { background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .photo-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 5px; vertical-align: middle; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 25px;
+        }
+        h1 { margin: 0; font-size: 24px; color: #1a252f; }
+        .nav-btn {
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .panel-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ЗАГРУЗКА ФАЙЛОВ */
+        .upload-area {
+            border: 2px dashed #007bff;
+            background: #f8fafd;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .upload-area input { display: none; }
+
+        /* СПИСОК ФОТО ГАЛЕРЕИ */
+        .admin-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .admin-photo-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            background: #222;
+        }
+        .admin-photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .btn-delete {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(220, 53, 69, 0.85);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-weight: bold;
+            line-height: 24px;
+            padding: 0;
+            text-align: center;
+        }
+
+        /* СПИСОК ЗАКАЗОВ */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .order-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            background: #fafbfc;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .order-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .status-new { background: #ffeba2; color: #856404; }
+        .status-process { background: #b8daff; color: #004085; }
+        .status-done { background: #c3e6cb; color: #155724; }
+
+        .order-items {
+            margin: 10px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        .order-item-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .order-item-row img {
+            width: 50px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-process { background: #17a2b8; color: white; }
+        .btn-done { background: #28a745; color: white; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🛠 Панель сотрудника</h1>
 
-        <!-- Массовая загрузка фото -->
-        <div class="card">
-            <h2>Загрузить фото с съемки (можно сразу несколько)</h2>
-            <form id="uploadForm" class="upload-box">
-                <input type="file" id="photoFiles" accept="image/*" multiple required style="font-size: 16px;">
-                <br>
-                <button type="submit" class="btn-upload">🚀 Загрузить фотографии</button>
-            </form>
-            <div id="message" style="margin-top: 10px; font-weight: bold;"></div>
+    <div class="header">
+        <h1>🛠️ Панель управления сотрудника</h1>
+        <a href="/" class="nav-btn" target="_blank">🖥️ Открыть экран киоска</a>
+    </div>
+
+    <div class="main-grid">
+        <!-- ЛЕВАЯ КОЛОНКА: ЗАКАЗЫ -->
+        <div class="panel-box">
+            <div class="panel-title">
+                <span>📦 Поступившие заказы</span>
+                <button class="btn-action" onclick="loadOrders()">🔄 Обновить</button>
+            </div>
+            <div class="orders-list" id="orders-list">
+                <p style="color: #777;">Загрузка заказов...</p>
+            </div>
         </div>
 
-        <!-- Заказы -->
-        <div class="card">
-            <h2>Поступающие заказы</h2>
-            <div id="ordersList">Загрузка заказов...</div>
+        <!-- ПРАВАЯ КОЛОНКА: УПРАВЛЕНИЕ ФОТОГРАФИЯМИ -->
+        <div class="panel-box">
+            <div class="panel-title">📸 Управление фотографиями</div>
+            
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                <div style="font-size: 28px; margin-bottom: 5px;">📤</div>
+                <strong>Нажмите для загрузки фото</strong>
+                <div style="font-size: 12px; color: #777; margin-top: 4px;">PNG, JPG, WEBP</div>
+                <input type="file" id="file-input" multiple accept="image/*" onchange="uploadFiles(this.files)">
+            </div>
+
+            <div class="admin-gallery" id="admin-gallery">
+                <!-- Галерея фото -->
+            </div>
         </div>
     </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const fileInput = document.getElementById('photoFiles');
-            const messageDiv = document.getElementById('message');
-
-            if (fileInput.files.length === 0) return;
-
-            const formData = new FormData();
-            for (let i = 0; i < fileInput.files.length; i++) {
-                formData.append('files', fileInput.files[i]);
-            }
-
-            messageDiv.textContent = 'Идет загрузка файлов...';
-            messageDiv.style.color = 'black';
-
+        async function loadAdminPhotos() {
             try {
-                const response = await fetch('/api/upload-photos', {
-                    method: 'POST',
-                    body: formData
+                const res = await fetch('/api/photos');
+                const photos = await res.json();
+                const container = document.getElementById('admin-gallery');
+                container.innerHTML = '';
+
+                photos.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.className = 'admin-photo-card';
+                    card.innerHTML = `
+                        <img src="${photo.url || photo.path}">
+                        <button class="btn-delete" onclick="deletePhoto('${photo.id}')" title="Удалить фото">×</button>
+                    `;
+                    container.appendChild(card);
                 });
-                const result = await response.json();
-                if (response.ok) {
-                    messageDiv.textContent = result.message;
-                    messageDiv.style.color = 'green';
-                    fileInput.value = '';
-                } else {
-                    messageDiv.textContent = 'Ошибка: ' + result.error;
-                    messageDiv.style.color = 'red';
-                }
-            } catch (err) {
-                messageDiv.textContent = 'Ошибка сети';
-                messageDiv.style.color = 'red';
+            } catch (e) {
+                console.error('Ошибка загрузки фото:', e);
             }
-        });
+        }
 
-        async function fetchOrders() {
+        async function uploadFiles(files) {
+            if (!files.length) return;
+            const formData = new FormData();
+            for (let f of files) formData.append('files', f);
+
             try {
-                const response = await fetch('/api/orders');
-                const orders = await response.json();
-                const container = document.getElementById('ordersList');
+                await fetch('/api/upload', { method: 'POST', body: formData });
+                loadAdminPhotos();
+            } catch (e) {
+                alert('Ошибка загрузки');
+            }
+        }
 
-                if (orders.length === 0) {
-                    container.innerHTML = '<p style="color:#6c757d;">Заказов пока нет...</p>';
+        async function deletePhoto(photoId) {
+            if (!confirm('Удалить эту фотографию из киоска?')) return;
+            try {
+                await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
+                loadAdminPhotos();
+            } catch (e) {
+                alert('Ошибка удаления');
+            }
+        }
+
+        async function loadOrders() {
+            const list = document.getElementById('orders-list');
+            try {
+                const res = await fetch('/api/orders');
+                const orders = await res.json();
+
+                if (!orders || orders.length === 0) {
+                    list.innerHTML = '<p style="color: #777;">Заказов пока нет</p>';
                     return;
                 }
 
-                container.innerHTML = orders.slice().reverse().map(order => {
-                    const isDone = order.status === 'ВЫДАН';
-                    const itemsHtml = order.items.map(item => `
-                        <li>
-                            <img src="${item.photo_url}" class="photo-thumb">
-                            <b>${item.merch_name}</b> — ${item.price} ₽
-                        </li>
-                    `).join('');
+                list.innerHTML = '';
+                orders.forEach(ord => {
+                    const card = document.createElement('div');
+                    card.className = 'order-card';
+                    
+                    let statusClass = 'status-new';
+                    if (ord.status === 'process') statusClass = 'status-process';
+                    if (ord.status === 'done') statusClass = 'status-done';
 
-                    return `
-                        <div class="order-card ${isDone ? 'completed' : ''}">
-                            <div>
-                                <h3>Заказ #${order.id} <small>(${order.time})</small> — ${order.status}</h3>
-                                <ul style="list-style: none; padding: 0;">${itemsHtml}</ul>
-                                <strong>Итого: ${order.total} ₽</strong>
-                            </div>
-                            <div>
-                                ${!isDone ? `<button class="btn-done" onclick="completeOrder(${order.id})">Отметить "Выдан"</button>` : '<i>Завершено</i>'}
+                    card.innerHTML = `
+                        <div class="order-header">
+                            <span>Заказ № ${ord.id} (${ord.time})</span>
+                            <span class="order-status ${statusClass}">${ord.statusText}</span>
+                        </div>
+                        <div class="order-items">
+                            ${ord.items.map(item => `
+                                <div class="order-item-row">
+                                    <img src="${item.photoUrl}">
+                                    <div>${item.desc}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                            <strong>Сумма: ${ord.total} ₽</strong>
+                            <div class="order-actions">
+                                <button class="btn-action btn-process" onclick="changeStatus('${ord.id}', 'process')">В печать</button>
+                                <button class="btn-action btn-done" onclick="changeStatus('${ord.id}', 'done')">Готов / Выдан</button>
                             </div>
                         </div>
                     `;
-                }).join('');
+                    list.appendChild(card);
+                });
             } catch (e) {
-                console.error("Ошибка загрузки заказов:", e);
+                console.error('Ошибка загрузки заказов:', e);
+                list.innerHTML = '<p style="color: red;">Ошибка при загрузке заказов</p>';
             }
         }
 
-        async function completeOrder(id) {
-            await fetch('/api/orders/' + id + '/complete', { method: 'POST' });
-            fetchOrders();
+        async function changeStatus(orderId, newStatus) {
+            try {
+                await fetch(`/api/orders/${orderId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                loadOrders();
+            } catch (e) {
+                alert('Не удалось обновить статус заказа');
+            }
         }
 
-        setInterval(fetchOrders, 3000);
-        fetchOrders();
+        loadAdminPhotos();
+        loadOrders();
+        setInterval(loadOrders, 5000);
+        setInterval(loadAdminPhotos, 10000);
     </script>
 </body>
 </html>
