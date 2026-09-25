@@ -223,8 +223,35 @@
             border-radius: 6px;
         }
         .cart-item-details { flex-grow: 1; }
-        .cart-item-title { font-weight: bold; margin-bottom: 4px; }
         .cart-item-sub { font-size: 14px; color: #666; }
+
+        /* ОКНО ОПЛАТЫ / QR-КОД */
+        .payment-box {
+            text-align: center;
+            align-items: center;
+            max-width: 480px;
+        }
+        .qr-card {
+            background: #ffffff;
+            border: 2px dashed #007bff;
+            border-radius: 16px;
+            padding: 20px;
+            display: inline-block;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .qr-image {
+            width: 220px;
+            height: 220px;
+            display: block;
+            margin: 0 auto;
+        }
+        .payment-amount {
+            font-size: 28px;
+            color: #28a745;
+            font-weight: bold;
+            margin: 10px 0;
+        }
 
         /* СПЯЩИЙ РЕЖИМ (КОЛЛАЖ 2x2) */
         #screensaver {
@@ -345,8 +372,32 @@
                 </div>
                 <div>
                     <button class="btn-modal btn-close" onclick="closeCartModal()">Вернуться</button>
-                    <button class="btn-modal btn-confirm" onclick="submitOrder()">Завершить выбор</button>
+                    <button class="btn-modal btn-confirm" onclick="proceedToPayment()">Перейти к оплате</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно оплаты с QR-кодом -->
+    <div class="modal" id="payment-modal">
+        <div class="modal-box payment-box">
+            <h2>💳 Оплата заказа</h2>
+            <p style="color: #555; margin: 0;">Отсканируйте QR-код приложением банка или СБП для оплаты</p>
+            
+            <div class="payment-amount" id="payment-amount-display">0 ₽</div>
+            
+            <div class="qr-card">
+                <!-- Генерация демонстрационного QR-кода -->
+                <img id="qr-code-img" class="qr-image" src="" alt="QR Code для оплаты">
+            </div>
+
+            <p style="font-size: 14px; color: #777; margin-bottom: 20px;">
+                После перевода нажмите «Я оплатил», чтобы получить заказ
+            </p>
+
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn-modal btn-close" onclick="closePaymentModal()">Отмена</button>
+                <button class="btn-modal btn-confirm" onclick="completePayment()">Я оплатил</button>
             </div>
         </div>
     </div>
@@ -572,16 +623,32 @@
             document.getElementById('cart-modal').style.display = 'none';
         }
 
-        function submitOrder() {
-            const { totalPrice, totalItems } = calculateTotal();
-            alert(`Спасибо за заказ!\nВыбрано товаров: ${totalItems} шт.\nСумма к оплате: ${totalPrice.toLocaleString()} ₽`);
-            cart = {};
+        // 4. ОПЛАТА И QR-КОД
+        function proceedToPayment() {
             closeCartModal();
+            const { totalPrice } = calculateTotal();
+            document.getElementById('payment-amount-display').innerText = `${totalPrice.toLocaleString()} ₽`;
+            
+            // Генерация демо QR-кода с суммой заказа
+            const qrText = encodeURIComponent(`https://qr.nspk.ru/DEMO_PAYMENT?sum=${totalPrice}`);
+            document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrText}`;
+
+            document.getElementById('payment-modal').style.display = 'flex';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').style.display = 'none';
+        }
+
+        function completePayment() {
+            alert('🎉 Оплата успешно получена! Спасибо за заказ.');
+            cart = {};
+            closePaymentModal();
             updateGalleryCards();
             updateCartUI();
         }
 
-        // 4. СЛАЙД-ШОУ В СПЯЩЕМ РЕЖИМЕ (КОЛЛАЖ 2x2)
+        // 5. СЛАЙД-ШОУ В СПЯЩЕМ РЕЖИМЕ (КОЛЛАЖ 2x2)
         let slideshowInterval = null;
         let photoPointer = 0;
 
@@ -625,7 +692,7 @@
             }
         }
 
-        // 5. ТАЙМЕР СПЯЩЕГО РЕЖИМА (15 секунд)
+        // 6. ТАЙМЕР СПЯЩЕГО РЕЖИМА (15 секунд)
         let idleTimer = null;
         const screensaver = document.getElementById('screensaver');
 
@@ -635,6 +702,7 @@
             updateCartUI();
             closePreviewModal();
             closeCartModal();
+            closePaymentModal();
             screensaver.style.display = 'block';
             startSlideshow();
         }
