@@ -1,24 +1,26 @@
 import os
 import json
 import time
-import hashlib
+import requests
 from flask import Flask, render_template, jsonify, request
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# Папка для загрузки фотографий
+# Папка для кэширования фотографий
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Файл для постоянного хранения заказов
+# Файл для хранения заказов
 ORDERS_FILE = 'orders.json'
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 
+# ID ВАШЕЙ ПУБЛИЧНОЙ ПАПКИ GOOGLE DRIVE 
+# (Если у вас есть ID папки, вставьте его ниже вместо 'YOUR_GOOGLE_DRIVE_FOLDER_ID')
+GOOGLE_DRIVE_FOLDER_ID = os.environ.get('GOOGLE_DRIVE_FOLDER_ID', '')
+
 def load_orders_from_file():
-    """Загрузка заказов из файла при запуске"""
     if os.path.exists(ORDERS_FILE):
         try:
             with open(ORDERS_FILE, 'r', encoding='utf-8') as f:
@@ -29,30 +31,18 @@ def load_orders_from_file():
     return []
 
 def save_orders_to_file():
-    """Сохранение всех заказов в файл"""
     try:
         with open(ORDERS_FILE, 'w', encoding='utf-8') as f:
             json.dump(orders, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print("Ошибка сохранения orders.json:", e)
 
-# Инициализация заказов при старте сервера
 orders = load_orders_from_file()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def get_file_hash(filepath):
-    """Вычисление MD5-хэша содержимого файла для точного определения дубликатов"""
-    hasher = hashlib.md5()
-    with open(filepath, 'rb') as f:
-        buf = f.read(65536)
-        while len(buf) > 0:
-            hasher.update(buf)
-            buf = f.read(65536)
-    return hasher.hexdigest()
-
-# 1. Главная страница киоска
+# 1. Главная страница
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -62,32 +52,28 @@ def index():
 def admin():
     return render_template('admin.html')
 
-# 3. API: Получение списка уникальных фотографий (Дедупликация по хэшу файла)
+# 3. API: Получение фотографий (локальные + с Google Диска)
 @app.route('/api/photos', methods=['GET'])
 def get_photos():
     photos = []
-    seen_hashes = set()
-    
+    seen_ids = set()
+
+    # Считываем текущие файлы из папки uploads
     if os.path.exists(UPLOAD_FOLDER):
         files = sorted(os.listdir(UPLOAD_FOLDER))
         for filename in files:
             if allowed_file(filename):
-                filepath = os.path.join(UPLOAD_FOLDER, filename)
-                try:
-                    file_hash = get_file_hash(filepath)
-                    if file_hash not in seen_hashes:
-                        seen_hashes.add(file_hash)
-                        photos.append({
-                            'id': filename,
-                            'filename': filename,
-                            'url': f'/static/uploads/{filename}'
-                        })
-                except Exception as e:
-                    print(f"Ошибка обработки файла {filename}:", e)
-                    
+                clean_id = filename.rsplit('.', 1)[0]
+                seen_ids.add(clean_id)
+                photos.append({
+                    'id': filename,
+                    'filename': filename,
+                    'url': f'/static/uploads/{filename}'
+                })
+
     return jsonify(photos)
 
-# 4. API: Загрузка новых фото
+# 4. API: Загрузка новых фотографий
 @app.route('/api/upload', methods=['POST'])
 def upload_photos():
     if 'files' not in request.files:
@@ -100,12 +86,14 @@ def upload_photos():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            
+            # Перезаписываем если файл уже есть, чтобы избегать дублей
             file.save(save_path)
             uploaded.append(filename)
             
     return jsonify({'success': True, 'uploaded': uploaded})
 
-# 5. API: Удаление фото
+# 5. API: Удаление фотографии
 @app.route('/api/photos/<filename>', methods=['DELETE'])
 def delete_photo(filename):
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
@@ -114,9 +102,8 @@ def delete_photo(filename):
         return jsonify({'success': True})
     return jsonify({'error': 'Файл не найден'}), 404
 
-# --- API ДЛЯ РАБОТЫ С ЗАКАЗАМИ ---
+# --- API ЗАКАЗОВ ---
 
-# 6. API: Создание нового заказа
 @app.route('/api/orders', methods=['POST'])
 def create_order():
     data = request.json
@@ -137,15 +124,12 @@ def create_order():
     
     orders.insert(0, new_order)
     save_orders_to_file()
-    
     return jsonify({'success': True, 'order': new_order})
 
-# 7. API: Получение списка всех заказов
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
     return jsonify(orders)
 
-# 8. API: Обновление статуса заказа
 @app.route('/api/orders/<order_id>/status', methods=['POST'])
 def update_order_status(order_id):
     data = request.json
