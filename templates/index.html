@@ -3,20 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Фотокиоск — Выбор Фото</title>
+    <title>Фотокиоск — Выбор Фото и Сувениров</title>
     <style>
+        :root {
+            --primary: #007bff;
+            --primary-hover: #0056b3;
+            --success: #28a745;
+            --danger: #dc3545;
+            --dark: #1e293b;
+            --light-bg: #f8fafc;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--light-bg);
             margin: 0;
-            padding: 20px;
+            padding: 20px 20px 110px 20px;
             text-align: center;
             user-select: none;
             -webkit-user-select: none;
+            color: #334155;
         }
-        h1 { color: #333; margin-top: 10px; }
-        .subtitle { color: #666; margin-bottom: 25px; }
-        
+
+        h1 {
+            color: var(--dark);
+            margin-top: 10px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 25px;
+            font-size: 16px;
+        }
+
+        /* ГАЛЕРЕЯ */
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -26,21 +47,21 @@
         }
         .photo-card {
             background: white;
-            border-radius: 14px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
             cursor: pointer;
             position: relative;
             border: 4px solid transparent;
-            aspect-ratio: 4 / 3; /* Красивая фиксированная пропорция */
+            aspect-ratio: 4 / 3;
         }
-        .photo-card:hover { 
-            transform: scale(1.03); 
-            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        .photo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
-        .photo-card.selected { 
-            border-color: #007bff; 
+        .photo-card.selected {
+            border-color: var(--primary);
         }
         .photo-card img {
             width: 100%;
@@ -48,23 +69,227 @@
             object-fit: cover;
             display: block;
         }
-        .checkmark {
+        
+        /* Бейдж выбранных товаров на карточке */
+        .badge-count {
             display: none;
             position: absolute;
-            top: 12px;
-            right: 12px;
-            background: #007bff;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
             color: white;
-            border-radius: 50%;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 2;
+        }
+        .photo-card.selected .badge-count {
+            display: block;
+        }
+
+        #loading {
+            font-size: 18px;
+            color: #94a3b8;
+            margin-top: 50px;
+        }
+
+        /* ПЛАВАЮЩАЯ ПАНЕЛЬ КОРЗИНЫ */
+        .cart-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            border-radius: 50px;
+            padding: 12px 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            z-index: 999;
+            border: 1px solid #e2e8f0;
+        }
+        .cart-info {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        .cart-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .cart-btn:hover { background: var(--primary-hover); }
+        .cart-btn:active { transform: scale(0.98); }
+        .cart-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+        /* МОДАЛЬНЫЕ ОКНА */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* МОДАЛКА ПРОСМОТРА И СУВЕНИРОВ */
+        .preview-box {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 768px) {
+            .preview-box {
+                flex-direction: column;
+                max-height: 95vh;
+                overflow-y: auto;
+            }
+        }
+        .preview-img-container {
+            flex: 1.2;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .preview-img-container img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        .souvenir-options {
+            flex: 1;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            background: white;
+            overflow-y: auto;
+        }
+        .souvenir-options h2 {
+            margin-top: 0;
+            font-size: 22px;
+            color: var(--dark);
+        }
+        .souvenir-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 15px 0 25px 0;
+        }
+        .souvenir-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .souvenir-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .souvenir-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-counter {
             width: 32px;
             height: 32px;
-            line-height: 32px;
-            font-weight: bold;
+            border-radius: 50%;
+            border: 1px solid #cbd5e1;
+            background: white;
             font-size: 18px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
         }
-        .photo-card.selected .checkmark { display: block; }
-        #loading { font-size: 18px; color: #777; margin-top: 40px; }
+        .btn-counter:active { background: #f1f5f9; }
+        .counter-value {
+            font-weight: bold;
+            font-size: 16px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* МОДАЛКА КОРЗИНЫ */
+        .cart-modal-box {
+            background: white;
+            width: 90%;
+            max-width: 850px;
+            max-height: 85vh;
+            border-radius: 20px;
+            padding: 30px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .cart-item-card {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            align-items: center;
+        }
+        .cart-item-thumb {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .cart-item-details {
+            flex: 1;
+        }
+        .cart-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .cart-item-tags {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .btn-modal {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-select { background: var(--success); color: white; }
+        .btn-close { background: #64748b; color: white; }
+        .btn-danger { background: var(--danger); color: white; }
 
         /* СПЯЩИЙ РЕЖИМ (КОЛЛАЖ 2x2) */
         #screensaver {
@@ -79,7 +304,6 @@
             cursor: pointer;
             overflow: hidden;
         }
-
         .collage-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -89,7 +313,6 @@
             gap: 8px;
             background-color: #000;
         }
-
         .collage-cell {
             position: relative;
             width: 100%;
@@ -97,7 +320,6 @@
             overflow: hidden;
             background-color: #111;
         }
-
         .collage-cell img {
             position: absolute;
             top: 0;
@@ -108,11 +330,7 @@
             opacity: 0;
             transition: opacity 1s ease-in-out;
         }
-
-        .collage-cell img.active {
-            opacity: 1;
-        }
-
+        .collage-cell img.active { opacity: 1; }
         .screensaver-overlay {
             position: absolute;
             bottom: 0;
@@ -125,17 +343,8 @@
             pointer-events: none;
             text-align: center;
         }
-        .screensaver-text {
-            font-size: 32px;
-            font-weight: 500;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.9);
-            margin-bottom: 6px;
-        }
-        .screensaver-subtext {
-            font-size: 18px;
-            opacity: 0.85;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-        }
+        .screensaver-text { font-size: 32px; font-weight: 500; margin-bottom: 6px; }
+        .screensaver-subtext { font-size: 18px; opacity: 0.85; }
     </style>
 </head>
 <body>
@@ -143,24 +352,11 @@
     <!-- Спящий режим -->
     <div id="screensaver" onclick="wakeUp(event)">
         <div class="collage-grid">
-            <div class="collage-cell" id="cell-0">
-                <img class="img-a active" alt="Cell 0 A">
-                <img class="img-b" alt="Cell 0 B">
-            </div>
-            <div class="collage-cell" id="cell-1">
-                <img class="img-a active" alt="Cell 1 A">
-                <img class="img-b" alt="Cell 1 B">
-            </div>
-            <div class="collage-cell" id="cell-2">
-                <img class="img-a active" alt="Cell 2 A">
-                <img class="img-b" alt="Cell 2 B">
-            </div>
-            <div class="collage-cell" id="cell-3">
-                <img class="img-a active" alt="Cell 3 A">
-                <img class="img-b" alt="Cell 3 B">
-            </div>
+            <div class="collage-cell" id="cell-0"><img class="img-a active" alt="Cell 0 A"><img class="img-b" alt="Cell 0 B"></div>
+            <div class="collage-cell" id="cell-1"><img class="img-a active" alt="Cell 1 A"><img class="img-b" alt="Cell 1 B"></div>
+            <div class="collage-cell" id="cell-2"><img class="img-a active" alt="Cell 2 A"><img class="img-b" alt="Cell 2 B"></div>
+            <div class="collage-cell" id="cell-3"><img class="img-a active" alt="Cell 3 A"><img class="img-b" alt="Cell 3 B"></div>
         </div>
-        
         <div class="screensaver-overlay">
             <div class="screensaver-text">📸 Нажмите на экран, чтобы начать</div>
             <div class="screensaver-subtext">Коснитесь любой области для выбора фотографий</div>
@@ -169,13 +365,64 @@
 
     <!-- Основной интерфейс -->
     <h1>📷 Выберите нужные фотографии</h1>
-    <p class="subtitle">Нажмите на фото, чтобы отметить его</p>
+    <p class="subtitle">Нажмите на фото, чтобы выбрать вариант сувенира или печати</p>
 
     <div id="loading">Загрузка галереи...</div>
     <div class="gallery" id="gallery"></div>
 
+    <!-- Нижняя панель Корзины -->
+    <div class="cart-bar">
+        <div class="cart-info">Выбрано предметов: <span id="cart-count">0</span></div>
+        <button class="cart-btn" id="open-cart-btn" onclick="openCartModal()" disabled>Просмотреть корзину</button>
+    </div>
+
+    <!-- Модальное окно просмотра фото и выбора сувениров -->
+    <div class="modal" id="preview-modal">
+        <div class="preview-box">
+            <div class="preview-img-container">
+                <img id="modal-img" src="" alt="Enlarged photo">
+            </div>
+            <div class="souvenir-options">
+                <h2>Выбор сувениров</h2>
+                <p style="font-size: 14px; color: #64748b;">Укажите количество нужных позиций для этого фото:</p>
+                
+                <div class="souvenir-list" id="souvenir-list">
+                    <!-- Заполняется динамически скриптом -->
+                </div>
+
+                <div style="margin-top: auto; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn-modal btn-close" onclick="closePreviewModal()">Сохранить и закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно самой Корзины -->
+    <div class="modal" id="cart-modal">
+        <div class="cart-modal-box">
+            <h2>🛒 Содержимое корзины</h2>
+            <div id="cart-items-container"></div>
+            <div style="text-align: right; margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn-modal btn-close" onclick="closeCartModal()">Вернуться к фото</button>
+                <button class="btn-modal btn-select" onclick="submitOrder()">Завершить заказ</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Типы доступных сувениров
+        const SOUVENIR_TYPES = [
+            { id: 'print_10x15', name: '📸 Фотопечать 10x15' },
+            { id: 'magnet', name: '🧲 Магнит на холодильник' },
+            { id: 'mug', name: '☕ Керамическая кружка' },
+            { id: 'puzzle', name: '🧩 Фото-пазл' },
+            { id: 'canvas', name: '🖼️ Холст на подрамнике' }
+        ];
+
         let currentPhotos = [];
+        // Структура корзины: { [photoId]: { [souvenirId]: count } }
+        let cartState = {}; 
+        let activePhotoId = null;
 
         // 1. ЗАГРУЗКА ГАЛЕРЕИ
         async function loadPhotos() {
@@ -194,54 +441,194 @@
                 }
                 
                 loading.style.display = 'none';
-                
-                const selectedIds = Array.from(document.querySelectorAll('.photo-card.selected')).map(c => c.dataset.id);
-                
-                gallery.innerHTML = '';
-                
-                currentPhotos.forEach(photo => {
-                    const card = document.createElement('div');
-                    card.className = 'photo-card';
-                    card.dataset.id = photo.id;
-                    if (selectedIds.includes(photo.id)) {
-                        card.classList.add('selected');
-                    }
-                    
-                    card.onclick = (e) => {
-                        e.stopPropagation();
-                        card.classList.toggle('selected');
-                        resetIdleTimer();
-                    };
-                    
-                    const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
-                    
-                    card.innerHTML = `
-                        <div class="checkmark">✓</div>
-                        <img src="${imgUrl}" alt="Photo" loading="lazy">
-                    `;
-                    gallery.appendChild(card);
-                });
+                renderGallery();
             } catch (error) {
                 console.error('Ошибка загрузки галереи:', error);
             }
         }
 
-        loadPhotos();
-        setInterval(loadPhotos, 10000);
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
 
-        // 2. СЛАЙД-ШОУ 4 ФОТО (КОЛЛАЖ 2x2)
+            currentPhotos.forEach(photo => {
+                const card = document.createElement('div');
+                card.className = 'photo-card';
+                card.dataset.id = photo.id;
+
+                const totalItemsForPhoto = getPhotoTotalItems(photo.id);
+                if (totalItemsForPhoto > 0) {
+                    card.classList.add('selected');
+                }
+
+                card.onclick = (e) => {
+                    e.stopPropagation();
+                    openPreviewModal(photo.id);
+                    resetIdleTimer();
+                };
+
+                const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
+
+                card.innerHTML = `
+                    <div class="badge-count">${totalItemsForPhoto} шт.</div>
+                    <img src="${imgUrl}" alt="Photo" loading="lazy">
+                `;
+                gallery.appendChild(card);
+            });
+
+            updateCartUI();
+        }
+
+        // Подсчет общего количества позиций для одной фотографии
+        function getPhotoTotalItems(photoId) {
+            if (!cartState[photoId]) return 0;
+            return Object.values(cartState[photoId]).reduce((acc, count) => acc + count, 0);
+        }
+
+        // 2. УПРАВЛЕНИЕ СУВЕНИРАМИ И МОДАЛКОЙ ПРОСМОТРА
+        function openPreviewModal(id) {
+            activePhotoId = id;
+            const photo = currentPhotos.find(p => p.id === id);
+            if (!photo) return;
+
+            document.getElementById('modal-img').src = photo.url || photo.path;
+            
+            renderSouvenirList();
+            document.getElementById('preview-modal').style.display = 'flex';
+        }
+
+        function closePreviewModal() {
+            document.getElementById('preview-modal').style.display = 'none';
+            activePhotoId = null;
+            renderGallery();
+        }
+
+        function renderSouvenirList() {
+            const container = document.getElementById('souvenir-list');
+            container.innerHTML = '';
+
+            if (!cartState[activePhotoId]) {
+                cartState[activePhotoId] = {};
+            }
+
+            SOUVENIR_TYPES.forEach(type => {
+                const count = cartState[activePhotoId][type.id] || 0;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'souvenir-item';
+                itemDiv.innerHTML = `
+                    <div class="souvenir-info">
+                        <span class="souvenir-title">${type.name}</span>
+                    </div>
+                    <div class="counter-controls">
+                        <button class="btn-counter" onclick="changeQuantity('${type.id}', -1)">-</button>
+                        <span class="counter-value">${count}</span>
+                        <button class="btn-counter" onclick="changeQuantity('${type.id}', 1)">+</button>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function changeQuantity(souvenirId, delta) {
+            if (!activePhotoId) return;
+
+            if (!cartState[activePhotoId]) {
+                cartState[activePhotoId] = {};
+            }
+
+            const current = cartState[activePhotoId][souvenirId] || 0;
+            const updated = Math.max(0, current + delta);
+
+            if (updated === 0) {
+                delete cartState[activePhotoId][souvenirId];
+            } else {
+                cartState[activePhotoId][souvenirId] = updated;
+            }
+
+            renderSouvenirList();
+            updateCartUI();
+        }
+
+        // 3. УПРАВЛЕНИЕ КОРЗИНОЙ
+        function getTotalCartCount() {
+            let total = 0;
+            Object.keys(cartState).forEach(photoId => {
+                total += getPhotoTotalItems(photoId);
+            });
+            return total;
+        }
+
+        function updateCartUI() {
+            const totalCount = getTotalCartCount();
+            document.getElementById('cart-count').innerText = totalCount;
+            document.getElementById('open-cart-btn').disabled = totalCount === 0;
+        }
+
+        function openCartModal() {
+            const container = document.getElementById('cart-items-container');
+            container.innerHTML = '';
+
+            const activePhotoIds = Object.keys(cartState).filter(id => getPhotoTotalItems(id) > 0);
+
+            if (activePhotoIds.length === 0) {
+                container.innerHTML = '<p style="color: #64748b;">Ваша корзина пуста.</p>';
+            } else {
+                activePhotoIds.forEach(photoId => {
+                    const photo = currentPhotos.find(p => p.id === photoId);
+                    if (!photo) return;
+
+                    const souvenirDetails = Object.entries(cartState[photoId])
+                        .map(([sId, count]) => {
+                            const souvenir = SOUVENIR_TYPES.find(s => s.id === sId);
+                            return `${souvenir ? souvenir.name : sId}: <b>${count} шт.</b>`;
+                        })
+                        .join('<br>');
+
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'cart-item-card';
+                    itemCard.innerHTML = `
+                        <img src="${photo.url || photo.path}" class="cart-item-thumb" alt="Thumb">
+                        <div class="cart-item-details">
+                            <div class="cart-item-tags">${souvenirDetails}</div>
+                        </div>
+                        <button class="btn-modal btn-danger" style="padding: 6px 12px; font-size: 14px;" onclick="removePhotoFromCart('${photoId}')">Удалить</button>
+                    `;
+                    container.appendChild(itemCard);
+                });
+            }
+
+            document.getElementById('cart-modal').style.display = 'flex';
+        }
+
+        function removePhotoFromCart(photoId) {
+            delete cartState[photoId];
+            openCartModal();
+            renderGallery();
+        }
+
+        function closeCartModal() {
+            document.getElementById('cart-modal').style.display = 'none';
+        }
+
+        function submitOrder() {
+            alert('Спасибо за заказ! Данные успешно переданы в обработку.');
+            cartState = {};
+            closeCartModal();
+            renderGallery();
+        }
+
+        // 4. СЛАЙД-ШОУ В СПЯЩЕМ РЕЖИМЕ (КОЛЛАЖ 2x2)
         let slideshowInterval = null;
         let photoPointer = 0;
 
         function updateCell(cellIndex) {
             if (!currentPhotos || currentPhotos.length === 0) return;
-
             const cell = document.getElementById(`cell-${cellIndex}`);
             if (!cell) return;
 
             const imgA = cell.querySelector('.img-a');
             const imgB = cell.querySelector('.img-b');
-
             const nextPhoto = currentPhotos[photoPointer % currentPhotos.length];
             const nextUrl = nextPhoto.url || nextPhoto.path;
             photoPointer++;
@@ -259,11 +646,8 @@
 
         function startSlideshow() {
             if (currentPhotos.length === 0) return;
-            
             photoPointer = 0;
-            for (let i = 0; i < 4; i++) {
-                updateCell(i);
-            }
+            for (let i = 0; i < 4; i++) updateCell(i);
 
             slideshowInterval = setInterval(() => {
                 const randomCell = Math.floor(Math.random() * 4);
@@ -278,12 +662,15 @@
             }
         }
 
-        // 3. ТАЙМЕР СПЯЩЕГО РЕЖИМА (15 секунд)
+        // 5. ТАЙМЕР СПЯЩЕГО РЕЖИМА (15 секунд)
         let idleTimer = null;
         const screensaver = document.getElementById('screensaver');
 
         function startSleep() {
-            document.querySelectorAll('.photo-card.selected').forEach(c => c.classList.remove('selected'));
+            cartState = {};
+            closePreviewModal();
+            closeCartModal();
+            renderGallery();
             screensaver.style.display = 'block';
             startSlideshow();
         }
@@ -303,6 +690,9 @@
         document.addEventListener('click', resetIdleTimer);
         document.addEventListener('touchstart', resetIdleTimer);
 
+        // Инициализация
+        loadPhotos();
+        setInterval(loadPhotos, 10000);
         resetIdleTimer();
     </script>
 </body>
