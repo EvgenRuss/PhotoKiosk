@@ -402,22 +402,37 @@
         let cart = {};
         let activePhotoId = null;
 
+        // Вспомогательная функция очистки названий от системных префиксов и суффиксов
+        function cleanPhotoName(filename) {
+            if (!filename) return '';
+            let name = filename.toLowerCase();
+            // Удаляем расширения
+            name = name.replace(/\.(png|jpg|jpeg|webp|gif)$/i, '');
+            // Удаляем повторы видов (1), _1, -copy и т.д.
+            name = name.replace(/[\s\-_](\d+|\(\d+\)|copy|копия)$/i, '');
+            return name.trim();
+        }
+
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
                 const rawPhotos = await response.json();
                 
-                // Фильтруем дубликаты по id / filename
+                // Строгая фильтрация дубликатов по нормализованному имени
                 const uniqueMap = new Map();
                 rawPhotos.forEach(p => {
-                    if (!uniqueMap.has(p.id)) {
-                        uniqueMap.set(p.id, p);
+                    const cleanName = cleanPhotoName(p.filename || p.id);
+                    if (!uniqueMap.has(cleanName)) {
+                        uniqueMap.set(cleanName, p);
                     }
                 });
                 const photos = Array.from(uniqueMap.values());
 
-                // Перерисовываем галерею только если изменился состав фотографий
-                if (JSON.stringify(photos.map(p => p.id)) === JSON.stringify(currentPhotos.map(p => p.id))) {
+                // Проверяем, менялся ли список
+                const newIds = photos.map(p => p.id).sort().join(',');
+                const currentIds = currentPhotos.map(p => p.id).sort().join(',');
+
+                if (newIds === currentIds && photos.length === currentPhotos.length) {
                     return;
                 }
 
@@ -477,7 +492,7 @@
             const photo = currentPhotos.find(p => p.id === id);
             if (!photo) return;
 
-            document.getElementById('modal-img').src = photo.url || photo.path;
+            document.getElementById('modal-img').src = photo.url || photo.path || `/static/uploads/${photo.filename}`;
             if (!cart[activePhotoId]) cart[activePhotoId] = {};
 
             renderOptionsList();
@@ -588,8 +603,9 @@
                     hasItems = true;
                     const row = document.createElement('div');
                     row.className = 'cart-item-row';
+                    const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
                     row.innerHTML = `
-                        <img src="${photo.url || photo.path}" alt="Photo">
+                        <img src="${imgUrl}" alt="Photo">
                         <div class="cart-item-details">
                             <div class="cart-item-sub">${itemsText}</div>
                         </div>
@@ -640,7 +656,7 @@
 
                 if (descParts.length > 0) {
                     orderItems.push({
-                        photoUrl: photo.url || photo.path,
+                        photoUrl: photo.url || photo.path || `/static/uploads/${photo.filename}`,
                         desc: descParts.join(', ')
                     });
                 }
@@ -683,7 +699,7 @@
             const imgA = cell.querySelector('.img-a');
             const imgB = cell.querySelector('.img-b');
             const nextPhoto = currentPhotos[photoPointer % currentPhotos.length];
-            const nextUrl = nextPhoto.url || nextPhoto.path;
+            const nextUrl = nextPhoto.url || nextPhoto.path || `/static/uploads/${nextPhoto.filename}`;
             photoPointer++;
 
             if (imgA.classList.contains('active')) {
