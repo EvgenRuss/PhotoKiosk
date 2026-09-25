@@ -1,54 +1,72 @@
-from flask import Flask, render_template, jsonify
-import requests
+import os
+from flask import Flask, render_template, jsonify, request
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# Настройки Google Drive
-GOOGLE_API_KEY = "AIzaSyD_ICUO8RTY9yU36F2QHeC1axWhFqqGuZo"
-FOLDER_ID = "134MgPoYH4TQui5qOpfqjgj7CqlTndDxP"
+# Папка для загрузки фотографий
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def get_google_drive_photos():
-    """Получает актуальный список файлов из папки на Google Диске"""
-    url = f"https://www.googleapis.com/drive/v3/files?q='{FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType)&key={GOOGLE_API_KEY}"
-    
-    try:
-        response = requests.get(url)
-        data = response.json()
-        files = data.get('files', [])
-        
-        photos = []
-        for file in files:
-            # Фильтруем только изображения
-            if file.get('mimeType', '').startswith('image/'):
-                photos.append({
-                    'id': file['id'],
-                    'filename': file['name'],
-                    'name': file['name'],
-                    'url': f"https://drive.google.com/thumbnail?id={file['id']}&sz=w1000"
-                })
-        return photos
-    except Exception as e:
-        print(f"Ошибка получения файлов с Google Drive: {e}")
-        return []
+# Допустимые расширения файлов
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# 1. Главная страница киоска (для клиентов)
 @app.route('/')
 def index():
-    photos = get_google_drive_photos()
-    return render_template('index.html', photos=photos)
+    return render_template('index.html')
 
-@app.route('/api/photos')
-def api_photos():
-    """API эндпоинт для автообновления галереи на клиенте"""
-    photos = get_google_drive_photos()
-    response = jsonify(photos)
-    # Разрешаем фоновые запросы без блокировки CORS
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
+# 2. Панель управления (для сотрудников)
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
 
-@app.route('/employee')
-def employee():
-    photos = get_google_drive_photos()
-    return render_template('employee.html', photos=photos)
+# 3. API: Получение списка всех фото
+@app.route('/api/photos', methods=['GET'])
+def get_photos():
+    photos = []
+    if os.path.exists(UPLOAD_FOLDER):
+        files = os.listdir(UPLOAD_FOLDER)
+        for filename in files:
+            if allowed_file(filename):
+                photos.append({
+                    'id': filename,
+                    'filename': filename,
+                    'url': f'/static/uploads/{filename}'
+                })
+    return jsonify(photos)
+
+# 4. API: Загрузка новых фото (из админки)
+@app.route('/api/upload', methods=['POST'])
+def upload_photos():
+    if 'files' not in request.files:
+        return jsonify({'error': 'Файлы не найдены'}), 400
+    
+    files = request.files.getlist('files')
+    uploaded = []
+    
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            # Чтобы избежать перезаписи одинаковых имен
+            save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(save_path)
+            uploaded.append(filename)
+            
+    return jsonify({'success': True, 'uploaded': uploaded})
+
+# 5. API: Удаление фото (из админки)
+@app.route('/api/photos/<filename>', methods=['DELETE'])
+def delete_photo(filename):
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        return jsonify({'success': True})
+    return jsonify({'error': 'Файл не найден'}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
