@@ -6,19 +6,16 @@
     <title>Фотокиоск — Выбор Фото</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f9;
             margin: 0;
             padding: 20px;
             text-align: center;
+            user-select: none; /* Защита от выделения текста на тачскрине */
         }
-        h1 {
-            color: #333;
-        }
-        .subtitle {
-            color: #666;
-            margin-bottom: 20px;
-        }
+        h1 { color: #333; margin-top: 10px; }
+        .subtitle { color: #666; margin-bottom: 20px; }
+        
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -28,20 +25,16 @@
         }
         .photo-card {
             background: white;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
             transition: transform 0.2s, border-color 0.2s;
             cursor: pointer;
             position: relative;
             border: 3px solid transparent;
         }
-        .photo-card:hover {
-            transform: scale(1.02);
-        }
-        .photo-card.selected {
-            border-color: #007bff;
-        }
+        .photo-card:hover { transform: scale(1.02); }
+        .photo-card.selected { border-color: #007bff; }
         .photo-card img {
             width: 100%;
             height: 180px;
@@ -69,18 +62,64 @@
             line-height: 28px;
             font-weight: bold;
         }
-        .photo-card.selected .checkmark {
-            display: block;
+        .photo-card.selected .checkmark { display: block; }
+        #loading { font-size: 18px; color: #777; margin-top: 40px; }
+
+        /* СТИЛИ ДЛЯ СПЯЩЕГО РЕЖИМА (SCREENSAVER) */
+        #screensaver {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
         }
-        #loading {
+        #screensaver.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .screensaver-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        .screensaver-text {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        .screensaver-subtext {
             font-size: 18px;
-            color: #777;
-            margin-top: 40px;
+            opacity: 0.8;
+            margin-top: 15px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Экран спящего режима -->
+    <div id="screensaver">
+        <div class="screensaver-icon">📸</div>
+        <div class="screensaver-text">Нажмите на экран, чтобы выбрать фото</div>
+        <div class="screensaver-subtext">Фотокиоск готов к работе</div>
+    </div>
+
+    <!-- Основной интерфейс -->
     <h1>📷 Выберите нужные фотографии</h1>
     <p class="subtitle">Нажмите на фото, чтобы отметить его</p>
 
@@ -88,6 +127,7 @@
     <div class="gallery" id="gallery"></div>
 
     <script>
+        // 1. ЛОГИКА ГАЛЕРЕИ
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
@@ -125,11 +165,31 @@
             }
         }
 
-        // Загружаем фото при открытии страницы
         loadPhotos();
-        
-        // Автообновление галереи каждые 10 секунд
-        setInterval(loadPhotos, 10000);
+        setInterval(loadPhotos, 10000); // Автообновление раз в 10 сек
+
+        // 2. ЛОГИКА СПЯЩЕГО РЕЖИМА
+        let idleTimer;
+        const IDLE_TIME_SECONDS = 30; // Время бездействия (в секундах) до ухода в сон
+        const screensaver = document.getElementById('screensaver');
+
+        function showScreensaver() {
+            screensaver.classList.add('active');
+        }
+
+        function resetIdleTimer() {
+            screensaver.classList.remove('active');
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(showScreensaver, IDLE_TIME_SECONDS * 1000);
+        }
+
+        // Отслеживаем любые действия пользователя (клики, касания, движение мыши, нажатия клавиш)
+        window.onload = resetIdleTimer;
+        window.onmousemove = resetIdleTimer;
+        window.onmousedown = resetIdleTimer;
+        window.ontouchstart = resetIdleTimer;
+        window.onclick = resetIdleTimer;
+        window.onkeypress = resetIdleTimer;
     </script>
 </body>
 </html>
