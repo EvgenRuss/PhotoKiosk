@@ -18,14 +18,17 @@ orders = []
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# 1. Главная страница киоска
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# 2. Панель сотрудника
 @app.route('/admin')
 def admin():
     return render_template('admin.html')
 
+# 3. API: Получение списка фотографий
 @app.route('/api/photos', methods=['GET'])
 def get_photos():
     photos = []
@@ -40,6 +43,7 @@ def get_photos():
                 })
     return jsonify(photos)
 
+# 4. API: Загрузка новых фото (из админки)
 @app.route('/api/upload', methods=['POST'])
 def upload_photos():
     if 'files' not in request.files:
@@ -57,6 +61,7 @@ def upload_photos():
             
     return jsonify({'success': True, 'uploaded': uploaded})
 
+# 5. API: Удаление фото (из админки)
 @app.route('/api/photos/<filename>', methods=['DELETE'])
 def delete_photo(filename):
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(filename))
@@ -67,7 +72,7 @@ def delete_photo(filename):
 
 # --- API ДЛЯ РАБОТЫ С ЗАКАЗАМИ ---
 
-# Отправка нового заказа из киоска
+# 6. API: Создание нового заказа (из киоска)
 @app.route('/api/orders', methods=['POST'])
 def create_order():
     data = request.json
@@ -86,15 +91,15 @@ def create_order():
         'items': data.get('items', [])
     }
     
-    orders.insert(0, new_order)  # Новые заказы сверху
+    orders.insert(0, new_order)  # Новые заказы помещаются наверх
     return jsonify({'success': True, 'order': new_order})
 
-# Получение списка заказов для админки
+# 7. API: Получение списка всех заказов (для админки)
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
     return jsonify(orders)
 
-# Изменение статуса заказа из админки
+# 8. API: Обновление статуса заказа (из админки)
 @app.route('/api/orders/<order_id>/status', methods=['POST'])
 def update_order_status(order_id):
     data = request.json
