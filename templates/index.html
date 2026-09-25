@@ -2,402 +2,134 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Фотокиоск — Выбор Фото</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; }
-        .header { text-align: center; margin-bottom: 20px; }
-        
-        .gallery-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-            gap: 15px; 
-            margin-bottom: 30px; 
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
         }
-        
-        .photo-card { 
-            position: relative;
-            background: white; 
-            border-radius: 10px; 
-            overflow: hidden; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        h1 {
+            color: #333;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .photo-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, border-color 0.2s;
             cursor: pointer;
+            position: relative;
             border: 3px solid transparent;
-            transition: all 0.2s;
         }
-        .photo-card.selected { border-color: #28a745; transform: scale(0.98); }
-        .photo-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
-
-        .checkbox-badge {
+        .photo-card:hover {
+            transform: scale(1.02);
+        }
+        .photo-card.selected {
+            border-color: #007bff;
+        }
+        .photo-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+        .photo-name {
+            padding: 10px;
+            font-size: 14px;
+            color: #444;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .checkmark {
+            display: none;
             position: absolute;
             top: 10px;
             right: 10px;
-            width: 28px;
-            height: 28px;
-            background: rgba(0,0,0,0.5);
+            background: #007bff;
             color: white;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
             font-weight: bold;
-            font-size: 16px;
         }
-        .photo-card.selected .checkbox-badge { background: #28a745; }
-
-        /* Конфигуратор сувениров */
-        .config-section { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 20px; display: none; }
-        .selected-photo-group { border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; }
-        .photo-header { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; }
-        .photo-header img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
-        
-        .merch-item-row { display: flex; align-items: center; justify-content: space-between; background: #f9fbfd; padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
-        .merch-select { padding: 6px 10px; font-size: 15px; border-radius: 6px; border: 1px solid #ccc; }
-        
-        .btn-add-more { background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px; }
-        .btn-add-more:hover { background: #138496; }
-        
-        .btn-remove { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-
-        .btn-pay { background-color: #28a745; color: white; border: none; padding: 14px 28px; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; width: 100%; }
-
-        /* ИНТЕРАКТИВНЫЙ СПЯЩИЙ РЕЖИМ С ДРЕЙФУЮЩИМИ ФОТОГРАФИЯМИ */
-        #screensaver { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh; 
-            background-color: #0b0c10; 
-            display: none; 
-            flex-direction: column;
-            z-index: 9999; 
-            cursor: pointer; 
-            box-sizing: border-box;
-            padding: 20px;
-            overflow: hidden;
+        .photo-card.selected .checkmark {
+            display: block;
         }
-
-        .screensaver-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 25px;
-            width: 100%;
-            height: calc(100% - 70px);
+        #loading {
+            font-size: 18px;
+            color: #777;
+            margin-top: 40px;
         }
-
-        .screensaver-slot {
-            position: relative;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 20px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .screensaver-slot img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-            border-radius: 12px;
-            filter: drop-shadow(0px 8px 16px rgba(0,0,0,0.6));
-        }
-
-        .slot-0 { animation: float1 6s ease-in-out infinite alternate; }
-        .slot-1 { animation: float2 7s ease-in-out infinite alternate; }
-        .slot-2 { animation: float3 8s ease-in-out infinite alternate; }
-        .slot-3 { animation: float4 6.5s ease-in-out infinite alternate; }
-
-        @keyframes float1 { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(12px, -15px) rotate(1.5deg); } }
-        @keyframes float2 { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(-15px, 10px) rotate(-2deg); } }
-        @keyframes float3 { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(10px, 15px) rotate(-1.5deg); } }
-        @keyframes float4 { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(-12px, -12px) rotate(2deg); } }
-
-        .screensaver-footer {
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .screensaver-text { 
-            color: white; 
-            font-size: 26px; 
-            font-weight: bold; 
-            text-shadow: 0 4px 12px rgba(0,0,0,0.8); 
-            background: linear-gradient(135deg, #28a745, #20c997); 
-            padding: 12px 35px; 
-            border-radius: 40px; 
-            animation: pulse 2s infinite; 
-            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.4);
-        }
-
-        @keyframes pulse { 0% { opacity: 0.85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.04); } 100% { opacity: 0.85; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <!-- Коллаж Спящего режима -->
-    <div id="screensaver" onclick="wakeUp()">
-        <div class="screensaver-grid">
-            <div class="screensaver-slot slot-0"><img id="ss-img-0" src="" alt="Фото 1"></div>
-            <div class="screensaver-slot slot-1"><img id="ss-img-1" src="" alt="Фото 2"></div>
-            <div class="screensaver-slot slot-2"><img id="ss-img-2" src="" alt="Фото 3"></div>
-            <div class="screensaver-slot slot-3"><img id="ss-img-3" src="" alt="Фото 4"></div>
-        </div>
-        <div class="screensaver-footer">
-            <div class="screensaver-text">👉 Коснитесь экрана, чтобы найти свои фото</div>
-        </div>
-    </div>
+    <h1>📷 Выберите нужные фотографии</h1>
+    <p class="subtitle">Нажмите на фото, чтобы отметить его</p>
 
-    <div class="header">
-        <h1>📸 Выберите нужные фотографии</h1>
-        <p style="color: #6c757d;">Нажмите на фото, чтобы отметить его</p>
-    </div>
-
-    <!-- Чистая сетка снимков -->
-    <div id="galleryGrid" class="gallery-grid">
-        <p>Загрузка галереи...</p>
-    </div>
-
-    <!-- Конфигуратор сувениров -->
-    <div id="configSection" class="config-section">
-        <h2>Настройка сувениров и формата печати</h2>
-        <div id="selectedPhotosList"></div>
-        <hr>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3>Итого к оплате: <span id="cartTotal" style="color: #28a745;">0</span> ₽</h3>
-        </div>
-        <button class="btn-pay" onclick="checkout()">Перейти к оплате</button>
-    </div>
+    <div id="loading">Загрузка галереи...</div>
+    <div class="gallery" id="gallery"></div>
 
     <script>
-        let photos = [];
-        let merchTypes = [];
-        let selectedPhotoIds = new Set();
-        // Теперь здесь хранится массив видов продукции для каждого фото: { photo_id: [merch_id1, merch_id2, ...] }
-        let photoMerchSelections = {};
-
-        let idleTimer;
-        let slotIntervals = [];
-        let slotIndexes = [0, 0, 0, 0];
-        const IDLE_TIME_MS = 15000;
-
-        async function loadGallery() {
+        async function loadPhotos() {
             try {
-                let res = await fetch('/api/gallery');
-                let data = await res.json();
-                photos = data.photos;
-                merchTypes = data.merch_types;
+                const response = await fetch('/api/photos');
+                const photos = await response.json();
                 
-                renderGallery();
-            } catch (err) {
-                console.error("Ошибка загрузки галереи:", err);
-            }
-        }
-
-        function renderGallery() {
-            let container = document.getElementById('galleryGrid');
-            if (photos.length === 0) {
-                container.innerHTML = '<p style="color: #6c757d; text-align: center; grid-column: 1/-1;">Фотографии пока не загружены сотрудником.</p>';
-                return;
-            }
-
-            container.innerHTML = photos.map(photo => {
-                let isSelected = selectedPhotoIds.has(photo.id);
-                return `
-                    <div class="photo-card ${isSelected ? 'selected' : ''}" onclick="toggleSelectPhoto(${photo.id})">
-                        <img src="${photo.url}">
-                        <div class="checkbox-badge">${isSelected ? '✓' : '+'}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function toggleSelectPhoto(id) {
-            if (selectedPhotoIds.has(id)) {
-                selectedPhotoIds.delete(id);
-                delete photoMerchSelections[id];
-            } else {
-                selectedPhotoIds.add(id);
-                // По умолчанию создаем один сувенир (первый из списка)
-                photoMerchSelections[id] = [merchTypes[0].id];
-            }
-            renderGallery();
-            renderConfigurator();
-        }
-
-        function renderConfigurator() {
-            const configSection = document.getElementById('configSection');
-            const container = document.getElementById('selectedPhotosList');
-
-            if (selectedPhotoIds.size === 0) {
-                configSection.style.display = 'none';
-                return;
-            }
-
-            configSection.style.display = 'block';
-            let total = 0;
-
-            container.innerHTML = Array.from(selectedPhotoIds).map(photoId => {
-                let photo = photos.find(p => p.id === photoId);
-                let merchList = photoMerchSelections[photoId] || [];
-
-                let rowsHtml = merchList.map((merchId, index) => {
-                    let merch = merchTypes.find(m => m.id === merchId);
-                    total += merch.price;
-
-                    let optionsHtml = merchTypes.map(m => `
-                        <option value="${m.id}" ${m.id === merchId ? 'selected' : ''}>
-                            ${m.name} — ${m.price} ₽
-                        </option>
-                    `).join('');
-
-                    return `
-                        <div class="merch-item-row">
-                            <select class="merch-select" onchange="updateMerchItem(${photoId}, ${index}, this.value)">
-                                ${optionsHtml}
-                            </select>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-weight: bold; font-size: 16px;">${merch.price} ₽</span>
-                                ${merchList.length > 1 ? `<button class="btn-remove" onclick="removeMerchItem(${photoId},${index})">✕</button>` : ''}
-                            </div>
-                        </div>
+                const gallery = document.getElementById('gallery');
+                const loading = document.getElementById('loading');
+                
+                gallery.innerHTML = '';
+                
+                if (photos.length === 0) {
+                    loading.innerText = 'В папке пока нет доступных фотографий.';
+                    return;
+                }
+                
+                loading.style.display = 'none';
+                
+                photos.forEach(photo => {
+                    const card = document.createElement('div');
+                    card.className = 'photo-card';
+                    card.onclick = () => card.classList.toggle('selected');
+                    
+                    const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
+                    
+                    card.innerHTML = `
+                        <div class="checkmark">✓</div>
+                        <img src="${imgUrl}" alt="${photo.name || photo.filename}" loading="lazy">
+                        <div class="photo-name">${photo.name || photo.filename}</div>
                     `;
-                }).join('');
-
-                return `
-                    <div class="selected-photo-group">
-                        <div class="photo-header">
-                            <img src="${photo.url}">
-                            <div>
-                                <strong style="font-size: 16px;">Фотография #${photo.id}</strong>
-                                <br>
-                                <button class="btn-add-more" onclick="addMerchItem(${photoId})">+ Добавить еще сувенир / печать из этого фото</button>
-                            </div>
-                        </div>
-                        <div>${rowsHtml}</div>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('cartTotal').textContent = total;
-        }
-
-        function updateMerchItem(photoId, index, newMerchId) {
-            photoMerchSelections[photoId][index] = newMerchId;
-            renderConfigurator();
-        }
-
-        function addMerchItem(photoId) {
-            // Добавляем еще одну копию (по умолчанию печать 10x15)
-            photoMerchSelections[photoId].push(merchTypes[0].id);
-            renderConfigurator();
-        }
-
-        function removeMerchItem(photoId, index) {
-            photoMerchSelections[photoId].splice(index, 1);
-            renderConfigurator();
-        }
-
-        async function checkout() {
-            let orderItems = [];
-
-            Array.from(selectedPhotoIds).forEach(photoId => {
-                let photo = photos.find(p => p.id === photoId);
-                let merchList = photoMerchSelections[photoId];
-
-                merchList.forEach(merchId => {
-                    let merch = merchTypes.find(m => m.id === merchId);
-                    orderItems.push({
-                        photo_id: photo.id,
-                        photo_url: photo.url,
-                        merch_name: merch.name,
-                        price: merch.price
-                    });
+                    gallery.appendChild(card);
                 });
-            });
-
-            let total = parseInt(document.getElementById('cartTotal').textContent);
-
-            let res = await fetch('/api/create-order', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ items: orderItems, total: total })
-            });
-
-            let data = await res.json();
-            if (data.success) {
-                alert(`Заказ #${data.order_id} оформлен! Передайте номер сотруднику.`);
-                selectedPhotoIds.clear();
-                photoMerchSelections = {};
-                renderGallery();
-                renderConfigurator();
+            } catch (error) {
+                console.error('Ошибка загрузки галереи:', error);
+                document.getElementById('loading').innerText = 'Ошибка при загрузке фотографий.';
             }
         }
 
-        /* Анимированный Спящий Режим */
-        function resetIdleTimer() {
-            clearTimeout(idleTimer);
-            idleTimer = setTimeout(startScreensaver, IDLE_TIME_MS);
-        }
-
-        function startScreensaver() {
-            if (photos.length === 0) return;
-            const screensaver = document.getElementById('screensaver');
-            screensaver.style.display = 'flex';
-
-            for (let slot = 0; slot < 4; slot++) {
-                slotIndexes[slot] = (slot * Math.floor(photos.length / 4)) % photos.length;
-                updateSlotImage(slot);
-            }
-
-            stopSlotAnimation();
-            
-            slotIntervals.push(setInterval(() => rotateSlot(0), 4500));
-            setTimeout(() => slotIntervals.push(setInterval(() => rotateSlot(1), 4500)), 1200);
-            setTimeout(() => slotIntervals.push(setInterval(() => rotateSlot(2), 4500)), 2400);
-            setTimeout(() => slotIntervals.push(setInterval(() => rotateSlot(3), 4500)), 3600);
-        }
-
-        function rotateSlot(slotIndex) {
-            slotIndexes[slotIndex] = (slotIndexes[slotIndex] + 1) % photos.length;
-            updateSlotImage(slotIndex);
-        }
-
-        function updateSlotImage(slotIndex) {
-            const imgEl = document.getElementById(`ss-img-${slotIndex}`);
-            if (!imgEl) return;
-            
-            imgEl.style.opacity = 0.1;
-            setTimeout(() => {
-                imgEl.src = photos[slotIndexes[slotIndex]].url;
-                imgEl.style.opacity = 1;
-            }, 400);
-        }
-
-        function stopSlotAnimation() {
-            slotIntervals.forEach(clearInterval);
-            slotIntervals = [];
-        }
-
-        function wakeUp() {
-            document.getElementById('screensaver').style.display = 'none';
-            stopSlotAnimation();
-            resetIdleTimer();
-        }
-
-        ['mousemove', 'mousedown', 'touchstart', 'click', 'keydown'].forEach(evt => {
-            window.addEventListener(evt, resetIdleTimer, true);
-        });
-
-        loadGallery();
-        resetIdleTimer();
+        // Загружаем фото при открытии страницы
+        loadPhotos();
+        
+        // Автообновление галереи каждые 10 секунд
+        setInterval(loadPhotos, 10000);
     </script>
 </body>
 </html>
