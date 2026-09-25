@@ -12,6 +12,7 @@
             padding: 20px;
             text-align: center;
             user-select: none;
+            -webkit-user-select: none;
         }
         h1 { color: #333; margin-top: 10px; }
         .subtitle { color: #666; margin-bottom: 20px; }
@@ -65,59 +66,75 @@
         .photo-card.selected .checkmark { display: block; }
         #loading { font-size: 18px; color: #777; margin-top: 40px; }
 
-        /* ЭКРАН СПЯЩЕГО РЕЖИМА */
+        /* СПЯЩИЙ РЕЖИМ (СЛАЙД-ШОУ) */
         #screensaver {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            background-color: #050508;
+            display: none;
             justify-content: center;
             align-items: center;
-            z-index: 99999;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.4s ease, visibility 0.4s ease;
+            z-index: 999999;
             cursor: pointer;
+            overflow: hidden;
         }
-        #screensaver.active {
+        
+        /* Картинка слайд-шоу с плавным размытием/проявлением */
+        .slideshow-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0;
+            transition: opacity 1.2s ease-in-out, transform 8s ease;
+            transform: scale(1);
+        }
+        .slideshow-img.active {
             opacity: 1;
-            visibility: visible;
+            transform: scale(1.05); /* Легкий эффект приближения */
         }
-        .screensaver-icon {
-            font-size: 90px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
+
+        /* Темный градиент снизу для текста */
+        .screensaver-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 40px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+            color: white;
+            z-index: 2;
+            pointer-events: none;
         }
         .screensaver-text {
-            font-size: 34px;
-            font-weight: 400;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 500;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            margin-bottom: 8px;
         }
         .screensaver-subtext {
             font-size: 18px;
-            opacity: 0.7;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.8; }
+            opacity: 0.85;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
         }
     </style>
 </head>
 <body>
 
-    <!-- Экран спящего режима -->
-    <div id="screensaver" onclick="wakeUp()">
-        <div class="screensaver-icon">📸</div>
-        <div class="screensaver-text">Нажмите на экран, чтобы выбрать фото</div>
-        <div class="screensaver-subtext">Фотокиоск готов к работе</div>
+    <!-- Экран спящего режима (Слайд-шоу) -->
+    <div id="screensaver" onclick="wakeUp(event)">
+        <img id="slide1" class="slideshow-img" alt="Slide 1">
+        <img id="slide2" class="slideshow-img" alt="Slide 2">
+        
+        <div class="screensaver-overlay">
+            <div class="screensaver-text">📸 Нажмите на экран, чтобы начать</div>
+            <div class="screensaver-subtext">Коснитесь любой области для выбора фотографий</div>
+        </div>
     </div>
 
     <!-- Основной интерфейс -->
@@ -128,28 +145,43 @@
     <div class="gallery" id="gallery"></div>
 
     <script>
+        let currentPhotos = [];
+
         // 1. ЗАГРУЗКА ГАЛЕРЕИ
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
-                const photos = await response.json();
+                currentPhotos = await response.json();
                 
                 const gallery = document.getElementById('gallery');
                 const loading = document.getElementById('loading');
                 
-                gallery.innerHTML = '';
-                
-                if (photos.length === 0) {
+                if (currentPhotos.length === 0) {
+                    gallery.innerHTML = '';
                     loading.innerText = 'В папке пока нет доступных фотографий.';
+                    loading.style.display = 'block';
                     return;
                 }
                 
                 loading.style.display = 'none';
                 
-                photos.forEach(photo => {
+                const selectedIds = Array.from(document.querySelectorAll('.photo-card.selected')).map(c => c.dataset.id);
+                
+                gallery.innerHTML = '';
+                
+                currentPhotos.forEach(photo => {
                     const card = document.createElement('div');
                     card.className = 'photo-card';
-                    card.onclick = () => card.classList.toggle('selected');
+                    card.dataset.id = photo.id;
+                    if (selectedIds.includes(photo.id)) {
+                        card.classList.add('selected');
+                    }
+                    
+                    card.onclick = (e) => {
+                        e.stopPropagation();
+                        card.classList.toggle('selected');
+                        resetIdleTimer();
+                    };
                     
                     const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
                     
@@ -162,41 +194,84 @@
                 });
             } catch (error) {
                 console.error('Ошибка загрузки галереи:', error);
-                document.getElementById('loading').innerText = 'Ошибка при загрузке фотографий.';
             }
         }
 
         loadPhotos();
         setInterval(loadPhotos, 10000);
 
-        // 2. СПЯЩИЙ РЕЖИМ (15 СЕКУНД)
-        let idleTimer;
-        const IDLE_TIMEOUT = 15000; // 15 секунд
-        const screensaver = document.getElementById('screensaver');
+        // 2. СЛАЙД-ШОУ В СПЯЩЕМ РЕЖИМЕ
+        let slideIndex = 0;
+        let slideshowInterval = null;
+        let activeSlideToggle = true;
 
-        function wakeUp() {
-            screensaver.classList.remove('active');
-            resetTimer();
+        function nextSlide() {
+            if (!currentPhotos || currentPhotos.length === 0) return;
+
+            const slide1 = document.getElementById('slide1');
+            const slide2 = document.getElementById('slide2');
+            
+            const nextPhoto = currentPhotos[slideIndex % currentPhotos.length];
+            const nextUrl = nextPhoto.url || nextPhoto.path;
+
+            // Поочередно меняем слои картинки для кросс-фейд (плавного) перехода
+            if (activeSlideToggle) {
+                slide2.src = nextUrl;
+                slide2.classList.add('active');
+                slide1.classList.remove('active');
+            } else {
+                slide1.src = nextUrl;
+                slide1.classList.add('active');
+                slide2.classList.remove('active');
+            }
+
+            activeSlideToggle = !activeSlideToggle;
+            slideIndex++;
         }
 
-        function showScreensaver() {
-            screensaver.classList.add('active');
-        }
-
-        function resetTimer() {
-            clearTimeout(idleTimer);
-            if (!screensaver.classList.contains('active')) {
-                idleTimer = setTimeout(showScreensaver, IDLE_TIMEOUT);
+        function startSlideshow() {
+            if (currentPhotos.length > 0) {
+                slideIndex = 0;
+                nextSlide();
+                // Смена фото каждые 4 секунды (4000 миллисекунд)
+                slideshowInterval = setInterval(nextSlide, 4000);
             }
         }
 
-        // Отслеживание действий на странице
-        ['mousemove', 'mousedown', 'touchstart', 'scroll', 'keydown', 'click'].forEach(eventName => {
-            document.addEventListener(eventName, resetTimer, true);
-        });
+        function stopSlideshow() {
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+                slideshowInterval = null;
+            }
+        }
 
-        // Запуск таймера при загрузке
-        resetTimer();
+        // 3. ЛОГИКА ТАЙМЕРА (15 СЕКУНД)
+        let idleTimer = null;
+        const screensaver = document.getElementById('screensaver');
+
+        function startSleep() {
+            // Снимаем выделения с выбранных фото при уходе в сон
+            document.querySelectorAll('.photo-card.selected').forEach(c => c.classList.remove('selected'));
+            screensaver.style.display = 'flex';
+            startSlideshow();
+        }
+
+        function wakeUp(e) {
+            if (e) e.stopPropagation();
+            screensaver.style.display = 'none';
+            stopSlideshow();
+            resetIdleTimer();
+        }
+
+        function resetIdleTimer() {
+            if (idleTimer) clearTimeout(idleTimer);
+            idleTimer = setTimeout(startSleep, 15000);
+        }
+
+        document.addEventListener('click', resetIdleTimer);
+        document.addEventListener('touchstart', resetIdleTimer);
+
+        resetIdleTimer();
     </script>
 </body>
 </html>
