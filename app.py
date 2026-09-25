@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import hashlib
 from flask import Flask, render_template, jsonify, request
 from werkzeug.utils import secure_filename
 
@@ -41,6 +42,16 @@ orders = load_orders_from_file()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_file_hash(filepath):
+    """Вычисление MD5-хэша содержимого файла для точного определения дубликатов"""
+    hasher = hashlib.md5()
+    with open(filepath, 'rb') as f:
+        buf = f.read(65536)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = f.read(65536)
+    return hasher.hexdigest()
+
 # 1. Главная страница киоска
 @app.route('/')
 def index():
@@ -51,19 +62,29 @@ def index():
 def admin():
     return render_template('admin.html')
 
-# 3. API: Получение списка фотографий
+# 3. API: Получение списка уникальных фотографий (Дедупликация по хэшу файла)
 @app.route('/api/photos', methods=['GET'])
 def get_photos():
     photos = []
+    seen_hashes = set()
+    
     if os.path.exists(UPLOAD_FOLDER):
-        files = os.listdir(UPLOAD_FOLDER)
+        files = sorted(os.listdir(UPLOAD_FOLDER))
         for filename in files:
             if allowed_file(filename):
-                photos.append({
-                    'id': filename,
-                    'filename': filename,
-                    'url': f'/static/uploads/{filename}'
-                })
+                filepath = os.path.join(UPLOAD_FOLDER, filename)
+                try:
+                    file_hash = get_file_hash(filepath)
+                    if file_hash not in seen_hashes:
+                        seen_hashes.add(file_hash)
+                        photos.append({
+                            'id': filename,
+                            'filename': filename,
+                            'url': f'/static/uploads/{filename}'
+                        })
+                except Exception as e:
+                    print(f"Ошибка обработки файла {filename}:", e)
+                    
     return jsonify(photos)
 
 # 4. API: Загрузка новых фото
@@ -114,8 +135,8 @@ def create_order():
         'items': data.get('items', [])
     }
     
-    orders.insert(0, new_order)  # Новые заказы наверху списка
-    save_orders_to_file()        # Запись в файл
+    orders.insert(0, new_order)
+    save_orders_to_file()
     
     return jsonify({'success': True, 'order': new_order})
 
@@ -138,7 +159,7 @@ def update_order_status(order_id):
             elif new_status == 'done':
                 ord['statusText'] = 'Выдан'
             
-            save_orders_to_file() # Обновление файла
+            save_orders_to_file()
             return jsonify({'success': True, 'order': ord})
             
     return jsonify({'error': 'Заказ не найден'}), 404
