@@ -15,58 +15,58 @@
             -webkit-user-select: none;
         }
         h1 { color: #333; margin-top: 10px; }
-        .subtitle { color: #666; margin-bottom: 20px; }
+        .subtitle { color: #666; margin-bottom: 25px; }
         
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            max-width: 1200px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            max-width: 1300px;
             margin: 0 auto;
         }
         .photo-card {
             background: white;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
             cursor: pointer;
             position: relative;
-            border: 3px solid transparent;
+            border: 4px solid transparent;
+            aspect-ratio: 4 / 3; /* Красивая фиксированная пропорция */
         }
-        .photo-card:hover { transform: scale(1.02); }
-        .photo-card.selected { border-color: #007bff; }
+        .photo-card:hover { 
+            transform: scale(1.03); 
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        .photo-card.selected { 
+            border-color: #007bff; 
+        }
         .photo-card img {
             width: 100%;
-            height: 180px;
+            height: 100%;
             object-fit: cover;
             display: block;
-        }
-        .photo-name {
-            padding: 10px;
-            font-size: 14px;
-            color: #444;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
         .checkmark {
             display: none;
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 12px;
+            right: 12px;
             background: #007bff;
             color: white;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            line-height: 28px;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
             font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
         .photo-card.selected .checkmark { display: block; }
         #loading { font-size: 18px; color: #777; margin-top: 40px; }
 
-        /* СПЯЩИЙ РЕЖИМ (ПОЛНЫЙ РАЗМЕР БЕЗ ОБРЕЗКИ) */
+        /* СПЯЩИЙ РЕЖИМ (КОЛЛАЖ 2x2) */
         #screensaver {
             position: fixed;
             top: 0;
@@ -98,14 +98,13 @@
             background-color: #111;
         }
 
-        /* Картинки отображаются полностью без обрезки */
         .collage-cell img {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Отображает фото целиком */
+            object-fit: contain;
             opacity: 0;
             transition: opacity 1s ease-in-out;
         }
@@ -114,7 +113,6 @@
             opacity: 1;
         }
 
-        /* Информационная плашка */
         .screensaver-overlay {
             position: absolute;
             bottom: 0;
@@ -142,7 +140,7 @@
 </head>
 <body>
 
-    <!-- Спящий режим: сетка 2x2 без обрезки -->
+    <!-- Спящий режим -->
     <div id="screensaver" onclick="wakeUp(event)">
         <div class="collage-grid">
             <div class="collage-cell" id="cell-0">
@@ -219,8 +217,7 @@
                     
                     card.innerHTML = `
                         <div class="checkmark">✓</div>
-                        <img src="${imgUrl}" alt="${photo.name || photo.filename}" loading="lazy">
-                        <div class="photo-name">${photo.name || photo.filename}</div>
+                        <img src="${imgUrl}" alt="Photo" loading="lazy">
                     `;
                     gallery.appendChild(card);
                 });
