@@ -17,7 +17,6 @@
         h1 { color: #333; margin-top: 10px; }
         .subtitle { color: #666; margin-bottom: 25px; }
         
-        /* ГАЛЕРЕЯ */
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -65,7 +64,6 @@
         .photo-card.selected .badge-count { display: block; }
         #loading { font-size: 18px; color: #777; margin-top: 40px; }
 
-        /* ПЛАВАЮЩАЯ ПАНЕЛЬ КОРЗИНЫ */
         .cart-bar {
             position: fixed;
             bottom: 20px;
@@ -105,7 +103,6 @@
         .cart-btn:hover { background: #0056b3; }
         .cart-btn:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* МОДАЛЬНЫЕ ОКНА */
         .modal {
             display: none;
             position: fixed;
@@ -201,7 +198,6 @@
         .btn-confirm { background: #28a745; color: white; }
         .btn-close { background: #6c757d; color: white; }
 
-        /* СПИСОК В КОРЗИНЕ */
         .cart-items-container {
             display: flex;
             flex-direction: column;
@@ -225,7 +221,6 @@
         .cart-item-details { flex-grow: 1; }
         .cart-item-sub { font-size: 14px; color: #666; }
 
-        /* ОКНО ОПЛАТЫ / QR-КОД */
         .payment-box {
             text-align: center;
             align-items: center;
@@ -253,7 +248,6 @@
             margin: 10px 0;
         }
 
-        /* СПЯЩИЙ РЕЖИМ (КОЛЛАЖ 2x2) */
         #screensaver {
             position: fixed;
             top: 0;
@@ -311,7 +305,6 @@
 </head>
 <body>
 
-    <!-- Спящий режим -->
     <div id="screensaver" onclick="wakeUp(event)">
         <div class="collage-grid">
             <div class="collage-cell" id="cell-0"><img class="img-a active"><img class="img-b"></div>
@@ -325,14 +318,12 @@
         </div>
     </div>
 
-    <!-- Основной интерфейс -->
     <h1>📷 Выберите нужные фотографии</h1>
     <p class="subtitle">Нажмите на фото, чтобы выбрать формат печати или сувениры</p>
 
     <div id="loading">Загрузка галереи...</div>
     <div class="gallery" id="gallery"></div>
 
-    <!-- Нижняя панель Корзины -->
     <div class="cart-bar">
         <div class="cart-info">
             Товаров: <span id="cart-count">0</span> шт. <br>
@@ -341,7 +332,6 @@
         <button class="cart-btn" id="open-cart-btn" onclick="openCartModal()" disabled>Просмотреть корзину</button>
     </div>
 
-    <!-- Модальное окно выбора сувениров для фото -->
     <div class="modal" id="preview-modal">
         <div class="modal-box">
             <h2>🛍️ Выберите варианты для этой фотографии</h2>
@@ -349,9 +339,7 @@
                 <div>
                     <img id="modal-img" class="preview-img-large" src="" alt="Photo preview">
                 </div>
-                <div class="product-options-list" id="options-list">
-                    <!-- Заполняется динамически -->
-                </div>
+                <div class="product-options-list" id="options-list"></div>
             </div>
             <div style="text-align: right; margin-top: 15px;">
                 <button class="btn-modal btn-confirm" onclick="closePreviewModal()">Готово</button>
@@ -359,13 +347,10 @@
         </div>
     </div>
 
-    <!-- Модальное окно просмотра Корзины -->
     <div class="modal" id="cart-modal">
         <div class="modal-box">
             <h2>🛒 Ваша корзина</h2>
-            <div class="cart-items-container" id="cart-items-container">
-                <!-- Заполняется динамически -->
-            </div>
+            <div class="cart-items-container" id="cart-items-container"></div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                 <div style="font-size: 20px; font-weight: bold;">
                     Итого к оплате: <span class="cart-total-price" id="cart-modal-total">0 ₽</span>
@@ -378,21 +363,19 @@
         </div>
     </div>
 
-    <!-- Модальное окно оплаты с QR-кодом -->
     <div class="modal" id="payment-modal">
         <div class="modal-box payment-box">
             <h2>💳 Оплата заказа</h2>
-            <p style="color: #555; margin: 0;">Отсканируйте QR-код приложением банка или СБП для оплаты</p>
+            <p style="color: #555; margin: 0;">Отсканируйте QR-код приложением банка для оплаты</p>
             
             <div class="payment-amount" id="payment-amount-display">0 ₽</div>
             
             <div class="qr-card">
-                <!-- Генерация демонстрационного QR-кода -->
                 <img id="qr-code-img" class="qr-image" src="" alt="QR Code для оплаты">
             </div>
 
             <p style="font-size: 14px; color: #777; margin-bottom: 20px;">
-                После перевода нажмите «Я оплатил», чтобы получить заказ
+                После перевода нажмите «Я оплатил», чтобы передать заказ сотруднику
             </p>
 
             <div style="display: flex; gap: 15px; justify-content: center;">
@@ -403,7 +386,6 @@
     </div>
 
     <script>
-        // АССОРТИМЕНТ И ЦЕНЫ
         const PRODUCTS = [
             { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500 },
             { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700 },
@@ -420,7 +402,6 @@
         let cart = {};
         let activePhotoId = null;
 
-        // 1. ЗАГРУЗКА ГАЛЕРЕИ
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
@@ -476,17 +457,13 @@
             return Object.values(cart[photoId]).reduce((a, b) => a + b, 0);
         }
 
-        // 2. ВЫБОР СУВЕНИРОВ ДЛЯ ФОТО
         function openPreviewModal(id) {
             activePhotoId = id;
             const photo = currentPhotos.find(p => p.id === id);
             if (!photo) return;
 
             document.getElementById('modal-img').src = photo.url || photo.path;
-            
-            if (!cart[activePhotoId]) {
-                cart[activePhotoId] = {};
-            }
+            if (!cart[activePhotoId]) cart[activePhotoId] = {};
 
             renderOptionsList();
             document.getElementById('preview-modal').style.display = 'flex';
@@ -498,7 +475,6 @@
 
             PRODUCTS.forEach(prod => {
                 const qty = cart[activePhotoId][prod.id] || 0;
-                
                 const item = document.createElement('div');
                 item.className = 'product-option-item';
                 item.innerHTML = `
@@ -518,7 +494,6 @@
 
         function changeQty(productId, delta) {
             if (!cart[activePhotoId]) cart[activePhotoId] = {};
-            
             const currentQty = cart[activePhotoId][productId] || 0;
             const newQty = Math.max(0, currentQty + delta);
             
@@ -553,7 +528,6 @@
             });
         }
 
-        // 3. ПОДСЧЕТ И КОРЗИНА
         function calculateTotal() {
             let totalItems = 0;
             let totalPrice = 0;
@@ -582,7 +556,6 @@
         function openCartModal() {
             const container = document.getElementById('cart-items-container');
             container.innerHTML = '';
-
             let hasItems = false;
 
             Object.keys(cart).forEach(photoId => {
@@ -610,9 +583,7 @@
                 }
             });
 
-            if (!hasItems) {
-                container.innerHTML = '<div>Корзина пуста</div>';
-            }
+            if (!hasItems) container.innerHTML = '<div>Корзина пуста</div>';
 
             const { totalPrice } = calculateTotal();
             document.getElementById('cart-modal-total').innerText = `${totalPrice.toLocaleString()} ₽`;
@@ -623,13 +594,11 @@
             document.getElementById('cart-modal').style.display = 'none';
         }
 
-        // 4. ОПЛАТА И QR-КОД
         function proceedToPayment() {
             closeCartModal();
             const { totalPrice } = calculateTotal();
             document.getElementById('payment-amount-display').innerText = `${totalPrice.toLocaleString()} ₽`;
             
-            // Генерация демо QR-кода с суммой заказа
             const qrText = encodeURIComponent(`https://qr.nspk.ru/DEMO_PAYMENT?sum=${totalPrice}`);
             document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${qrText}`;
 
@@ -640,15 +609,54 @@
             document.getElementById('payment-modal').style.display = 'none';
         }
 
-        function completePayment() {
-            alert('🎉 Оплата успешно получена! Спасибо за заказ.');
+        async function completePayment() {
+            const { totalPrice } = calculateTotal();
+            const orderItems = [];
+
+            Object.keys(cart).forEach(photoId => {
+                const photo = currentPhotos.find(p => p.id === photoId);
+                const photoCart = cart[photoId];
+                if (!photo || !photoCart) return;
+
+                const descParts = Object.keys(photoCart).map(prodId => {
+                    const prod = PRODUCTS.find(p => p.id === prodId);
+                    return `${prod.name} × ${photoCart[prodId]} шт.`;
+                });
+
+                if (descParts.length > 0) {
+                    orderItems.push({
+                        photoUrl: photo.url || photo.path,
+                        desc: descParts.join(', ')
+                    });
+                }
+            });
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        total: totalPrice,
+                        items: orderItems
+                    })
+                });
+
+                if (response.ok) {
+                    alert('🎉 Оплата успешно принята! Заказ передан сотруднику.');
+                } else {
+                    alert('Заказ зарегистрирован.');
+                }
+            } catch (err) {
+                console.error('Ошибка отправки заказа:', err);
+                alert('Произошла ошибка при передаче заказа');
+            }
+
             cart = {};
             closePaymentModal();
             updateGalleryCards();
             updateCartUI();
         }
 
-        // 5. СЛАЙД-ШОУ В СПЯЩЕМ РЕЖИМЕ (КОЛЛАЖ 2x2)
         let slideshowInterval = null;
         let photoPointer = 0;
 
@@ -692,7 +700,6 @@
             }
         }
 
-        // 6. ТАЙМЕР СПЯЩЕГО РЕЖИМА (15 секунд)
         let idleTimer = null;
         const screensaver = document.getElementById('screensaver');
 
