@@ -132,7 +132,7 @@
 
         .product-select-layout {
             display: grid;
-            grid-template-columns: 1.1fr 1fr;
+            grid-template-columns: 1.2fr 1fr;
             gap: 25px;
             align-items: center;
         }
@@ -142,26 +142,26 @@
 
         /* --- ИНТЕРАКТИВНЫЙ МАКЕТ ПРЕВЬЮ --- */
         .mockup-wrapper {
-            background: #111;
+            background: #1c1f26;
             border-radius: 14px;
-            padding: 20px;
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 340px;
+            min-height: 350px;
             position: relative;
             overflow: hidden;
         }
         .mockup-title {
-            color: #aaa;
+            color: #bbb;
             font-size: 14px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: 600;
         }
 
-        /* Стили макетов под разные товары */
         .mockup-frame {
             position: relative;
             transition: all 0.3s ease;
@@ -171,48 +171,82 @@
             align-items: center;
         }
 
-        /* Обычное фото */
+        /* --- СТИЛЬ АКРИЛОВОГО МАГНИТА С ФОТОГРАФИИ ПРИМЕРА --- */
+        .mockup-frame.type-magnet {
+            position: relative;
+            width: 260px;
+            height: 180px;
+            margin-top: -20px;
+            margin-left: -30px;
+        }
+        /* Задняя пластина (корпус с магнитом) */
+        .mockup-frame.type-magnet::before {
+            content: '';
+            position: absolute;
+            width: 240px;
+            height: 160px;
+            top: 35px;
+            left: 55px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(220,225,235,0.9) 100%);
+            border: 4px solid rgba(200, 210, 225, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 1;
+        }
+        /* Черный виниловый магнит на задней пластине */
+        .mockup-frame.type-magnet::after {
+            content: '';
+            position: absolute;
+            width: 110px;
+            height: 75px;
+            top: 68px;
+            left: 120px;
+            background: #111111;
+            border-radius: 4px;
+            box-shadow: inset 0 0 4px rgba(255,255,255,0.2);
+            z-index: 2;
+        }
+        /* Передняя панель с фотографией посетителя */
+        .mockup-frame.type-magnet img {
+            position: relative;
+            z-index: 3;
+            width: 240px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            /* Прозрачный акриловый борт и блики */
+            border: 8px solid rgba(255, 255, 255, 0.85);
+            outline: 2px solid rgba(180, 195, 215, 0.8);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.6), inset 0 0 12px rgba(255,255,255,0.6);
+        }
+
+        /* Стандартное фото */
         .mockup-frame.type-photo img {
-            max-height: 280px;
+            max-height: 250px;
             max-width: 100%;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             object-fit: contain;
         }
 
-        /* Магнит / Рамка */
-        .mockup-frame.type-magnet {
-            background: #ffffff;
-            padding: 14px;
-            border-radius: 6px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 0 5px rgba(0,0,0,0.2);
-            border: 2px solid #ddd;
-        }
-        .mockup-frame.type-magnet img {
-            max-height: 240px;
-            max-width: 100%;
-            border-radius: 3px;
-            display: block;
-        }
-
-        /* Деревянная / Защитная рамка */
+        /* Деревянная рамка */
         .mockup-frame.type-frame {
-            background: #4a2c11; /* Деревянный каркас */
-            padding: 18px;
+            background: #4a2c11;
+            padding: 16px;
             border-radius: 4px;
             box-shadow: 0 12px 30px rgba(0,0,0,0.7);
             border: 3px solid #2d1908;
         }
         .mockup-frame.type-frame img {
-            max-height: 230px;
-            border: 8px solid #fff; /* Паспарту */
+            max-height: 220px;
+            border: 8px solid #fff;
             display: block;
         }
 
         /* Кружка */
         .mockup-frame.type-mug {
-            width: 220px;
-            height: 220px;
+            width: 200px;
+            height: 200px;
             background: #ffffff;
             border-radius: 12px 24px 24px 12px;
             position: relative;
@@ -223,22 +257,21 @@
             align-items: center;
             justify-content: center;
         }
-        /* Ручка кружки */
         .mockup-frame.type-mug::after {
             content: '';
             position: absolute;
-            right: -38px;
-            top: 35px;
-            width: 35px;
-            height: 120px;
+            right: -35px;
+            top: 30px;
+            width: 32px;
+            height: 110px;
             border: 14px solid #ffffff;
             border-left: none;
             border-radius: 0 35px 35px 0;
             box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
         }
         .mockup-frame.type-mug img {
-            width: 150px;
-            height: 180px;
+            width: 140px;
+            height: 160px;
             object-fit: cover;
             border-radius: 6px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
@@ -439,11 +472,11 @@
     <!-- МОДАЛЬНОЕ ОКНО ПРЕВЬЮ -->
     <div class="modal" id="preview-modal">
         <div class="modal-box">
-            <h2>🛍️ Пример того, как это будет выглядеть</h2>
+            <h2>🛍️ Наглядный пример вашего сувенира</h2>
             <div class="product-select-layout">
                 <div class="mockup-wrapper">
-                    <div class="mockup-title" id="mockup-label">Обычное фото</div>
-                    <div class="mockup-frame type-photo" id="mockup-container">
+                    <div class="mockup-title" id="mockup-label">Акриловый Магнит</div>
+                    <div class="mockup-frame type-magnet" id="mockup-container">
                         <img id="modal-img" src="" alt="Photo preview">
                     </div>
                 </div>
@@ -495,8 +528,8 @@
 
     <script>
         const PRODUCTS = [
-            { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500, style: 'type-magnet', label: 'Виниловый Магнит' },
-            { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700, style: 'type-magnet', label: 'Рамка-Магнит' },
+            { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500, style: 'type-magnet', label: 'Акриловый Магнит 7x10' },
+            { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700, style: 'type-magnet', label: 'Акриловый Магнит 10x15' },
             { id: 'frame_15x20', name: '🖼️ Рамка 15x20', price: 900, style: 'type-frame', label: 'Деревянная Рамка' },
             { id: 'photo_from_magnet', name: '📷 Фото из магнита', price: 300, style: 'type-photo', label: 'Печатное Фото' },
             { id: 'photo_10x15', name: '📷 Фото 10x15', price: 450, style: 'type-photo', label: 'Фотопечать 10x15' },
@@ -577,7 +610,6 @@
             container.className = `mockup-frame ${prod.style}`;
             label.innerText = prod.label;
 
-            // Подсвечиваем выбранный вариант в списке
             document.querySelectorAll('.product-option-item').forEach(el => {
                 if (el.dataset.id === prod.id) el.classList.add('active-preview');
                 else el.classList.remove('active-preview');
