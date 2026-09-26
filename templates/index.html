@@ -119,8 +119,8 @@
         .modal-box {
             background: white;
             width: 90%;
-            max-width: 900px;
-            max-height: 85vh;
+            max-width: 950px;
+            max-height: 90vh;
             border-radius: 18px;
             padding: 25px;
             overflow-y: auto;
@@ -132,19 +132,116 @@
 
         .product-select-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1.1fr 1fr;
             gap: 25px;
+            align-items: center;
         }
         @media (max-width: 768px) {
             .product-select-layout { grid-template-columns: 1fr; }
         }
 
-        .preview-img-large {
-            width: 100%;
-            height: 320px;
-            object-fit: contain;
-            border-radius: 12px;
+        /* --- ИНТЕРАКТИВНЫЙ МАКЕТ ПРЕВЬЮ --- */
+        .mockup-wrapper {
             background: #111;
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 340px;
+            position: relative;
+            overflow: hidden;
+        }
+        .mockup-title {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Стили макетов под разные товары */
+        .mockup-frame {
+            position: relative;
+            transition: all 0.3s ease;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Обычное фото */
+        .mockup-frame.type-photo img {
+            max-height: 280px;
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+
+        /* Магнит / Рамка */
+        .mockup-frame.type-magnet {
+            background: #ffffff;
+            padding: 14px;
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6), inset 0 0 5px rgba(0,0,0,0.2);
+            border: 2px solid #ddd;
+        }
+        .mockup-frame.type-magnet img {
+            max-height: 240px;
+            max-width: 100%;
+            border-radius: 3px;
+            display: block;
+        }
+
+        /* Деревянная / Защитная рамка */
+        .mockup-frame.type-frame {
+            background: #4a2c11; /* Деревянный каркас */
+            padding: 18px;
+            border-radius: 4px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+            border: 3px solid #2d1908;
+        }
+        .mockup-frame.type-frame img {
+            max-height: 230px;
+            border: 8px solid #fff; /* Паспарту */
+            display: block;
+        }
+
+        /* Кружка */
+        .mockup-frame.type-mug {
+            width: 220px;
+            height: 220px;
+            background: #ffffff;
+            border-radius: 12px 24px 24px 12px;
+            position: relative;
+            box-shadow: inset -20px 0 25px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.4);
+            border: 2px solid #eee;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Ручка кружки */
+        .mockup-frame.type-mug::after {
+            content: '';
+            position: absolute;
+            right: -38px;
+            top: 35px;
+            width: 35px;
+            height: 120px;
+            border: 14px solid #ffffff;
+            border-left: none;
+            border-radius: 0 35px 35px 0;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+        }
+        .mockup-frame.type-mug img {
+            width: 150px;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
         }
 
         .product-options-list {
@@ -157,11 +254,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 14px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
             background: #f9f9f9;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
         }
+        .product-option-item:hover, .product-option-item.active-preview {
+            border-color: #007bff;
+            background: #f0f7ff;
+        }
+
         .option-name { font-weight: 600; color: #333; }
         .option-price { color: #28a745; font-weight: bold; margin-left: 6px; }
 
@@ -332,12 +436,16 @@
         <button class="cart-btn" id="open-cart-btn" onclick="openCartModal()" disabled>Просмотреть корзину</button>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО ПРЕВЬЮ -->
     <div class="modal" id="preview-modal">
         <div class="modal-box">
-            <h2>🛍️ Выберите варианты для этой фотографии</h2>
+            <h2>🛍️ Пример того, как это будет выглядеть</h2>
             <div class="product-select-layout">
-                <div>
-                    <img id="modal-img" class="preview-img-large" src="" alt="Photo preview">
+                <div class="mockup-wrapper">
+                    <div class="mockup-title" id="mockup-label">Обычное фото</div>
+                    <div class="mockup-frame type-photo" id="mockup-container">
+                        <img id="modal-img" src="" alt="Photo preview">
+                    </div>
                 </div>
                 <div class="product-options-list" id="options-list"></div>
             </div>
@@ -387,30 +495,28 @@
 
     <script>
         const PRODUCTS = [
-            { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500 },
-            { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700 },
-            { id: 'frame_15x20', name: '🖼️ Рамка 15x20', price: 900 },
-            { id: 'photo_from_magnet', name: '📷 Фото из магнита', price: 300 },
-            { id: 'photo_10x15', name: '📷 Фото 10x15', price: 450 },
-            { id: 'photo_15x20', name: '📷 Фото 15x20', price: 600 },
-            { id: 'photo_a4_calendar', name: '🖼️ Фото А4 / Календарь / Коллаж', price: 750 },
-            { id: 'mug', name: '☕ Кружка', price: 900 },
-            { id: 'digital_photo', name: '💾 Электронное фото', price: 300 }
+            { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500, style: 'type-magnet', label: 'Виниловый Магнит' },
+            { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700, style: 'type-magnet', label: 'Рамка-Магнит' },
+            { id: 'frame_15x20', name: '🖼️ Рамка 15x20', price: 900, style: 'type-frame', label: 'Деревянная Рамка' },
+            { id: 'photo_from_magnet', name: '📷 Фото из магнита', price: 300, style: 'type-photo', label: 'Печатное Фото' },
+            { id: 'photo_10x15', name: '📷 Фото 10x15', price: 450, style: 'type-photo', label: 'Фотопечать 10x15' },
+            { id: 'photo_15x20', name: '📷 Фото 15x20', price: 600, style: 'type-photo', label: 'Фотопечать 15x20' },
+            { id: 'photo_a4_calendar', name: '🖼️ Фото А4 / Календарь', price: 750, style: 'type-frame', label: 'Формат А4 / Календарь' },
+            { id: 'mug', name: '☕ Кружка', price: 900, style: 'type-mug', label: 'Сувенирная Кружка' },
+            { id: 'digital_photo', name: '💾 Электронное фото', price: 300, style: 'type-photo', label: 'Цифровой Файл' }
         ];
 
         let currentPhotos = [];
         let cart = {};
         let activePhotoId = null;
+        let activePreviewProduct = PRODUCTS[0];
 
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
                 const photos = await response.json();
 
-                if (!Array.isArray(photos)) {
-                    console.error('Ошибка в структуре данных API:', photos);
-                    return;
-                }
+                if (!Array.isArray(photos)) return;
 
                 currentPhotos = photos;
                 const gallery = document.getElementById('gallery');
@@ -463,15 +569,33 @@
             return Object.values(cart[photoId]).reduce((a, b) => a + b, 0);
         }
 
+        function setMockupStyle(prod) {
+            activePreviewProduct = prod;
+            const container = document.getElementById('mockup-container');
+            const label = document.getElementById('mockup-label');
+            
+            container.className = `mockup-frame ${prod.style}`;
+            label.innerText = prod.label;
+
+            // Подсвечиваем выбранный вариант в списке
+            document.querySelectorAll('.product-option-item').forEach(el => {
+                if (el.dataset.id === prod.id) el.classList.add('active-preview');
+                else el.classList.remove('active-preview');
+            });
+        }
+
         function openPreviewModal(id) {
             activePhotoId = id;
             const photo = currentPhotos.find(p => p.id === id);
             if (!photo) return;
 
-            document.getElementById('modal-img').src = photo.url || photo.path || `/static/uploads/${photo.filename}`;
+            const url = photo.url || photo.path || `/static/uploads/${photo.filename}`;
+            document.getElementById('modal-img').src = url;
+
             if (!cart[activePhotoId]) cart[activePhotoId] = {};
 
             renderOptionsList();
+            setMockupStyle(PRODUCTS[0]);
             document.getElementById('preview-modal').style.display = 'flex';
         }
 
@@ -482,13 +606,17 @@
             PRODUCTS.forEach(prod => {
                 const qty = cart[activePhotoId][prod.id] || 0;
                 const item = document.createElement('div');
-                item.className = 'product-option-item';
+                item.className = `product-option-item ${prod.id === activePreviewProduct.id ? 'active-preview' : ''}`;
+                item.dataset.id = prod.id;
+                
+                item.onclick = () => setMockupStyle(prod);
+
                 item.innerHTML = `
                     <div>
                         <span class="option-name">${prod.name}</span>
                         <span class="option-price">${prod.price} ₽</span>
                     </div>
-                    <div class="qty-controls">
+                    <div class="qty-controls" onclick="event.stopPropagation()">
                         <button class="btn-qty" onclick="changeQty('${prod.id}', -1)">-</button>
                         <span class="qty-value">${qty}</span>
                         <button class="btn-qty" onclick="changeQty('${prod.id}', 1)">+</button>
@@ -508,6 +636,9 @@
             } else {
                 cart[activePhotoId][productId] = newQty;
             }
+
+            const selectedProd = PRODUCTS.find(p => p.id === productId);
+            if (selectedProd) setMockupStyle(selectedProd);
 
             renderOptionsList();
             updateGalleryCards();
