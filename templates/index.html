@@ -402,37 +402,13 @@
         let cart = {};
         let activePhotoId = null;
 
-        // Вспомогательная функция очистки названий от системных префиксов и суффиксов
-        function cleanPhotoName(filename) {
-            if (!filename) return '';
-            let name = filename.toLowerCase();
-            // Удаляем расширения
-            name = name.replace(/\.(png|jpg|jpeg|webp|gif)$/i, '');
-            // Удаляем повторы видов (1), _1, -copy и т.д.
-            name = name.replace(/[\s\-_](\d+|\(\d+\)|copy|копия)$/i, '');
-            return name.trim();
-        }
-
         async function loadPhotos() {
             try {
                 const response = await fetch('/api/photos');
-                const rawPhotos = await response.json();
-                
-                // Строгая фильтрация дубликатов по нормализованному имени
-                const uniqueMap = new Map();
-                rawPhotos.forEach(p => {
-                    const cleanName = cleanPhotoName(p.filename || p.id);
-                    if (!uniqueMap.has(cleanName)) {
-                        uniqueMap.set(cleanName, p);
-                    }
-                });
-                const photos = Array.from(uniqueMap.values());
+                const photos = await response.json();
 
-                // Проверяем, менялся ли список
-                const newIds = photos.map(p => p.id).sort().join(',');
-                const currentIds = currentPhotos.map(p => p.id).sort().join(',');
-
-                if (newIds === currentIds && photos.length === currentPhotos.length) {
+                if (!Array.isArray(photos)) {
+                    console.error('Ошибка в структуре данных API:', photos);
                     return;
                 }
 
@@ -442,7 +418,7 @@
 
                 if (currentPhotos.length === 0) {
                     gallery.innerHTML = '';
-                    loading.innerText = 'В папке пока нет доступных фотографий.';
+                    loading.innerText = 'В папке Google Диска пока нет доступных фотографий.';
                     loading.style.display = 'block';
                     return;
                 }
