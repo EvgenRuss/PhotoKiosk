@@ -128,6 +128,24 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            position: relative;
+        }
+
+        /* КРЕСТИК ВЕРХУ СПРАВА */
+        .modal-close-icon {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+        .modal-close-icon:hover {
+            color: #111;
         }
 
         .product-select-layout {
@@ -171,7 +189,7 @@
             align-items: center;
         }
 
-        /* --- СТИЛЬ АКРИЛОВОГО МАГНИТА С ФОТОГРАФИИ ПРИМЕРА --- */
+        /* --- СТИЛЬ АКРИЛОВОГО МАГНИТА --- */
         .mockup-frame.type-magnet {
             position: relative;
             width: 260px;
@@ -179,7 +197,6 @@
             margin-top: -20px;
             margin-left: -30px;
         }
-        /* Задняя пластина (корпус с магнитом) */
         .mockup-frame.type-magnet::before {
             content: '';
             position: absolute;
@@ -193,7 +210,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             z-index: 1;
         }
-        /* Черный виниловый магнит на задней пластине */
         .mockup-frame.type-magnet::after {
             content: '';
             position: absolute;
@@ -206,7 +222,6 @@
             box-shadow: inset 0 0 4px rgba(255,255,255,0.2);
             z-index: 2;
         }
-        /* Передняя панель с фотографией посетителя */
         .mockup-frame.type-magnet img {
             position: relative;
             z-index: 3;
@@ -214,7 +229,6 @@
             height: 160px;
             object-fit: cover;
             border-radius: 8px;
-            /* Прозрачный акриловый борт и блики */
             border: 8px solid rgba(255, 255, 255, 0.85);
             outline: 2px solid rgba(180, 195, 215, 0.8);
             box-shadow: 0 12px 28px rgba(0,0,0,0.6), inset 0 0 12px rgba(255,255,255,0.6);
@@ -284,6 +298,7 @@
         }
 
         .product-option-item {
+            position: relative;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -297,6 +312,46 @@
         .product-option-item:hover, .product-option-item.active-preview {
             border-color: #007bff;
             background: #f0f7ff;
+        }
+
+        /* ЖЕЛТЫЙ ЗНАЧОК "ХИТ" */
+        .hit-badge {
+            position: absolute;
+            top: -10px;
+            right: 12px;
+            background: #ffc107;
+            color: #000;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* КНОПКА РАСКРЫТИЯ ДОП. СУВЕНИРОВ */
+        .toggle-more-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #007bff;
+            margin-top: 5px;
+            transition: background 0.2s;
+            text-align: center;
+        }
+        .toggle-more-btn:hover {
+            background: #e4e8ee;
+        }
+
+        .more-products-container {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 5px;
         }
 
         .option-name { font-weight: 600; color: #333; }
@@ -325,7 +380,7 @@
         .qty-value { font-weight: bold; font-size: 16px; min-width: 20px; text-align: center; }
 
         .btn-modal {
-            padding: 12px 24px;
+            padding: 12px 28px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 30px;
@@ -421,7 +476,7 @@
             height: 100%;
             object-fit: contain;
             opacity: 0;
-            transition: opacity 1s ease-in-out;
+            transition: opacity 0.5s ease-in-out;
         }
         .collage-cell img.active { opacity: 1; }
         .screensaver-overlay {
@@ -472,10 +527,11 @@
     <!-- МОДАЛЬНОЕ ОКНО ПРЕВЬЮ -->
     <div class="modal" id="preview-modal">
         <div class="modal-box">
-            <h2>🛍️ Наглядный пример вашего сувенира</h2>
+            <div class="modal-close-icon" onclick="closePreviewModal()" title="Закрыть">×</div>
+            <h2>🛍️ Пример вашего сувенира</h2>
             <div class="product-select-layout">
                 <div class="mockup-wrapper">
-                    <div class="mockup-title" id="mockup-label">Акриловый Магнит</div>
+                    <div class="mockup-title" id="mockup-label">Акриловый Магнит 7х10</div>
                     <div class="mockup-frame type-magnet" id="mockup-container">
                         <img id="modal-img" src="" alt="Photo preview">
                     </div>
@@ -483,13 +539,14 @@
                 <div class="product-options-list" id="options-list"></div>
             </div>
             <div style="text-align: right; margin-top: 15px;">
-                <button class="btn-modal btn-confirm" onclick="closePreviewModal()">Готово</button>
+                <button class="btn-modal btn-confirm" onclick="closePreviewModal()">В корзину</button>
             </div>
         </div>
     </div>
 
     <div class="modal" id="cart-modal">
         <div class="modal-box">
+            <div class="modal-close-icon" onclick="closeCartModal()">×</div>
             <h2>🛒 Ваша корзина</h2>
             <div class="cart-items-container" id="cart-items-container"></div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
@@ -506,6 +563,7 @@
 
     <div class="modal" id="payment-modal">
         <div class="modal-box payment-box">
+            <div class="modal-close-icon" onclick="closePaymentModal()">×</div>
             <h2>💳 Оплата заказа</h2>
             <p style="color: #555; margin: 0;">Отсканируйте QR-код приложением банка для оплаты</p>
             
@@ -527,22 +585,28 @@
     </div>
 
     <script>
-        const PRODUCTS = [
-            { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500, style: 'type-magnet', label: 'Акриловый Магнит 7x10' },
+        const MAIN_PRODUCTS = [
+            { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500, style: 'type-magnet', label: 'Акриловый Магнит 7x10', isHit: true },
             { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700, style: 'type-magnet', label: 'Акриловый Магнит 10x15' },
+            { id: 'mug', name: '☕ Кружка', price: 900, style: 'type-mug', label: 'Сувенирная Кружка' }
+        ];
+
+        const EXTRA_PRODUCTS = [
             { id: 'frame_15x20', name: '🖼️ Рамка 15x20', price: 900, style: 'type-frame', label: 'Деревянная Рамка' },
-            { id: 'photo_from_magnet', name: '📷 Фото из магнита', price: 300, style: 'type-photo', label: 'Печатное Фото' },
+            { id: 'photo_7x10', name: '📷 Фото 7х10', price: 300, style: 'type-photo', label: 'Печатное Фото 7х10' },
             { id: 'photo_10x15', name: '📷 Фото 10x15', price: 450, style: 'type-photo', label: 'Фотопечать 10x15' },
             { id: 'photo_15x20', name: '📷 Фото 15x20', price: 600, style: 'type-photo', label: 'Фотопечать 15x20' },
             { id: 'photo_a4_calendar', name: '🖼️ Фото А4 / Календарь', price: 750, style: 'type-frame', label: 'Формат А4 / Календарь' },
-            { id: 'mug', name: '☕ Кружка', price: 900, style: 'type-mug', label: 'Сувенирная Кружка' },
             { id: 'digital_photo', name: '💾 Электронное фото', price: 300, style: 'type-photo', label: 'Цифровой Файл' }
         ];
+
+        const ALL_PRODUCTS = [...MAIN_PRODUCTS, ...EXTRA_PRODUCTS];
 
         let currentPhotos = [];
         let cart = {};
         let activePhotoId = null;
-        let activePreviewProduct = PRODUCTS[0];
+        let activePreviewProduct = MAIN_PRODUCTS[0];
+        let showMoreProducts = false;
 
         async function loadPhotos() {
             try {
@@ -627,23 +691,18 @@
             if (!cart[activePhotoId]) cart[activePhotoId] = {};
 
             renderOptionsList();
-            setMockupStyle(PRODUCTS[0]);
+            setMockupStyle(MAIN_PRODUCTS[0]);
             document.getElementById('preview-modal').style.display = 'flex';
         }
 
-        function renderOptionsList() {
-            const list = document.getElementById('options-list');
-            list.innerHTML = '';
+        function createOptionItemHTML(prod) {
+            const qty = cart[activePhotoId][prod.id] || 0;
+            const isActive = prod.id === activePreviewProduct.id ? 'active-preview' : '';
+            const hitBadgeHTML = prod.isHit ? `<div class="hit-badge">★ ХИТ</div>` : '';
 
-            PRODUCTS.forEach(prod => {
-                const qty = cart[activePhotoId][prod.id] || 0;
-                const item = document.createElement('div');
-                item.className = `product-option-item ${prod.id === activePreviewProduct.id ? 'active-preview' : ''}`;
-                item.dataset.id = prod.id;
-                
-                item.onclick = () => setMockupStyle(prod);
-
-                item.innerHTML = `
+            return `
+                <div class="product-option-item ${isActive}" data-id="${prod.id}" onclick="setMockupStyleById('${prod.id}')">
+                    ${hitBadgeHTML}
                     <div>
                         <span class="option-name">${prod.name}</span>
                         <span class="option-price">${prod.price} ₽</span>
@@ -653,9 +712,46 @@
                         <span class="qty-value">${qty}</span>
                         <button class="btn-qty" onclick="changeQty('${prod.id}', 1)">+</button>
                     </div>
-                `;
-                list.appendChild(item);
+                </div>
+            `;
+        }
+
+        function setMockupStyleById(prodId) {
+            const prod = ALL_PRODUCTS.find(p => p.id === prodId);
+            if (prod) setMockupStyle(prod);
+        }
+
+        function toggleMoreProducts() {
+            showMoreProducts = !showMoreProducts;
+            renderOptionsList();
+        }
+
+        function renderOptionsList() {
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+
+            // 1. Рендерим основные позиции
+            MAIN_PRODUCTS.forEach(prod => {
+                list.innerHTML += createOptionItemHTML(prod);
             });
+
+            // 2. Кнопка "Показать еще варианты"
+            const toggleBtn = document.createElement('div');
+            toggleBtn.className = 'toggle-more-btn';
+            toggleBtn.innerText = showMoreProducts ? 'Скрыть остальные сувениры ▲' : 'Показать остальные сувениры ▼';
+            toggleBtn.onclick = toggleMoreProducts;
+            list.appendChild(toggleBtn);
+
+            // 3. Дополнительные позиции
+            const moreContainer = document.createElement('div');
+            moreContainer.className = 'more-products-container';
+            moreContainer.style.display = showMoreProducts ? 'flex' : 'none';
+
+            EXTRA_PRODUCTS.forEach(prod => {
+                moreContainer.innerHTML += createOptionItemHTML(prod);
+            });
+
+            list.appendChild(moreContainer);
         }
 
         function changeQty(productId, delta) {
@@ -669,7 +765,7 @@
                 cart[activePhotoId][productId] = newQty;
             }
 
-            const selectedProd = PRODUCTS.find(p => p.id === productId);
+            const selectedProd = ALL_PRODUCTS.find(p => p.id === productId);
             if (selectedProd) setMockupStyle(selectedProd);
 
             renderOptionsList();
@@ -704,7 +800,7 @@
             Object.keys(cart).forEach(photoId => {
                 Object.keys(cart[photoId]).forEach(prodId => {
                     const qty = cart[photoId][prodId];
-                    const product = PRODUCTS.find(p => p.id === prodId);
+                    const product = ALL_PRODUCTS.find(p => p.id === prodId);
                     if (product && qty > 0) {
                         totalItems += qty;
                         totalPrice += product.price * qty;
@@ -733,7 +829,7 @@
                 if (!photo || !photoCart) return;
 
                 const itemsText = Object.keys(photoCart).map(prodId => {
-                    const prod = PRODUCTS.find(p => p.id === prodId);
+                    const prod = ALL_PRODUCTS.find(p => p.id === prodId);
                     const qty = photoCart[prodId];
                     return `${prod.name} × ${qty} шт. (${prod.price * qty} ₽)`;
                 }).join('<br>');
@@ -789,7 +885,7 @@
                 if (!photo || !photoCart) return;
 
                 const descParts = Object.keys(photoCart).map(prodId => {
-                    const prod = PRODUCTS.find(p => p.id === prodId);
+                    const prod = ALL_PRODUCTS.find(p => p.id === prodId);
                     return `${prod.name} × ${photoCart[prodId]} шт.`;
                 });
 
@@ -827,6 +923,7 @@
             updateCartUI();
         }
 
+        /* --- СОННЫЙ РЕЖИМ (SLIDESHOW) --- */
         let slideshowInterval = null;
         let photoPointer = 0;
 
@@ -857,10 +954,11 @@
             photoPointer = 0;
             for (let i = 0; i < 4; i++) updateCell(i);
 
+            // БЫСТРАЯ СМЕНА ФОТО (каждые 1.5 секунды)
             slideshowInterval = setInterval(() => {
                 const randomCell = Math.floor(Math.random() * 4);
                 updateCell(randomCell);
-            }, 3000);
+            }, 1500);
         }
 
         function stopSlideshow() {
@@ -870,6 +968,7 @@
             }
         }
 
+        /* --- ТАЙМЕР ПРОСТОЯ (30 СЕКУНД) --- */
         let idleTimer = null;
         const screensaver = document.getElementById('screensaver');
 
@@ -893,7 +992,8 @@
 
         function resetIdleTimer() {
             if (idleTimer) clearTimeout(idleTimer);
-            idleTimer = setTimeout(startSleep, 15000);
+            // ВКЛЮЧЕНИЕ СОННОГО РЕЖИМА СПУСТЯ 30 СЕКУНД (30 000 мс)
+            idleTimer = setTimeout(startSleep, 30000);
         }
 
         document.addEventListener('click', resetIdleTimer);
