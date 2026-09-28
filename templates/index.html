@@ -131,7 +131,6 @@
             position: relative;
         }
 
-        /* КРЕСТИК ВЕРХУ СПРАВА */
         .modal-close-icon {
             position: absolute;
             top: 15px;
@@ -257,38 +256,87 @@
             display: block;
         }
 
-        /* Кружка */
+        /* --- КРУЖКА С ШАБЛОНОМ И ДЕРЕВЯННОЙ РАМКОЙ --- */
         .mockup-frame.type-mug {
-            width: 200px;
-            height: 200px;
+            width: 210px;
+            height: 220px;
             background: #ffffff;
-            border-radius: 12px 24px 24px 12px;
+            border-radius: 16px 28px 28px 16px;
             position: relative;
-            box-shadow: inset -20px 0 25px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.4);
-            border: 2px solid #eee;
+            box-shadow: inset -22px 0 25px rgba(0,0,0,0.2), 0 12px 25px rgba(0,0,0,0.5);
+            border: 2px solid #e2e2e2;
             overflow: visible;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding-left: 10px;
         }
+        /* Ручка кружки */
         .mockup-frame.type-mug::after {
             content: '';
             position: absolute;
-            right: -35px;
-            top: 30px;
-            width: 32px;
-            height: 110px;
-            border: 14px solid #ffffff;
+            right: -38px;
+            top: 35px;
+            width: 34px;
+            height: 120px;
+            border: 15px solid #ffffff;
             border-left: none;
-            border-radius: 0 35px 35px 0;
-            box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+            border-radius: 0 40px 40px 0;
+            box-shadow: 5px 5px 12px rgba(0,0,0,0.3);
         }
-        .mockup-frame.type-mug img {
-            width: 140px;
-            height: 160px;
+        /* Шаблон принта на кружке */
+        .mug-print-area {
+            width: 185px;
+            height: 195px;
+            background: linear-gradient(135deg, #4d8226 0%, #68a335 50%, #467821 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+        }
+        /* Деревянная рамка из веток */
+        .mug-wooden-frame {
+            position: absolute;
+            left: 10px;
+            top: 20px;
+            width: 105px;
+            height: 145px;
+            border: 6px double #6d4218;
+            box-shadow: 0 0 0 3px #3d230b, 0 4px 10px rgba(0,0,0,0.5);
+            border-radius: 4px;
+            background: #fff;
+            overflow: hidden;
+            z-index: 2;
+        }
+        .mug-wooden-frame img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 6px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+        /* Иллюстрация феи справа */
+        .mug-fairy-graphic {
+            position: absolute;
+            right: 4px;
+            bottom: 10px;
+            width: 70px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .fairy-wings {
+            font-size: 45px;
+            line-height: 0.8;
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+        }
+        .fairy-character {
+            font-size: 50px;
+            line-height: 0.9;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
         }
 
         .product-options-list {
@@ -314,7 +362,6 @@
             background: #f0f7ff;
         }
 
-        /* ЖЕЛТЫЙ ЗНАЧОК "ХИТ" */
         .hit-badge {
             position: absolute;
             top: -10px;
@@ -330,7 +377,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* КНОПКА РАСКРЫТИЯ ДОП. СУВЕНИРОВ */
         .toggle-more-btn {
             background: #f0f0f0;
             border: 1px solid #ddd;
@@ -533,6 +579,7 @@
                 <div class="mockup-wrapper">
                     <div class="mockup-title" id="mockup-label">Акриловый Магнит 7х10</div>
                     <div class="mockup-frame type-magnet" id="mockup-container">
+                        <!-- Динамическое наполнение создается в JS -->
                         <img id="modal-img" src="" alt="Photo preview">
                     </div>
                 </div>
@@ -588,7 +635,7 @@
         const MAIN_PRODUCTS = [
             { id: 'magnet_7x10', name: '🧲 Магнит 7x10', price: 500, style: 'type-magnet', label: 'Акриловый Магнит 7x10', isHit: true },
             { id: 'frame_magnet_10x15', name: '🖼️ Рамка-магнит 10x15', price: 700, style: 'type-magnet', label: 'Акриловый Магнит 10x15' },
-            { id: 'mug', name: '☕ Кружка', price: 900, style: 'type-mug', label: 'Сувенирная Кружка' }
+            { id: 'mug', name: '☕ Кружка', price: 900, style: 'type-mug', label: 'Сувенирная Кружка с фото' }
         ];
 
         const EXTRA_PRODUCTS = [
@@ -671,8 +718,28 @@
             const container = document.getElementById('mockup-container');
             const label = document.getElementById('mockup-label');
             
-            container.className = `mockup-frame ${prod.style}`;
+            const currentPhoto = currentPhotos.find(p => p.id === activePhotoId);
+            const imgUrl = currentPhoto ? (currentPhoto.url || currentPhoto.path || `/static/uploads/${currentPhoto.filename}`) : '';
+
             label.innerText = prod.label;
+            container.className = `mockup-frame ${prod.style}`;
+
+            // Если выбирают КРУЖКУ — подставляем зеленый шаблон с рамкой и феей
+            if (prod.style === 'type-mug') {
+                container.innerHTML = `
+                    <div class="mug-print-area">
+                        <div class="mug-wooden-frame">
+                            <img src="${imgUrl}" alt="User photo">
+                        </div>
+                        <div class="mug-fairy-graphic">
+                            <div class="fairy-wings">🧚‍♀️</div>
+                            <div class="fairy-character">✨</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `<img id="modal-img" src="${imgUrl}" alt="Photo preview">`;
+            }
 
             document.querySelectorAll('.product-option-item').forEach(el => {
                 if (el.dataset.id === prod.id) el.classList.add('active-preview');
@@ -682,12 +749,6 @@
 
         function openPreviewModal(id) {
             activePhotoId = id;
-            const photo = currentPhotos.find(p => p.id === id);
-            if (!photo) return;
-
-            const url = photo.url || photo.path || `/static/uploads/${photo.filename}`;
-            document.getElementById('modal-img').src = url;
-
             if (!cart[activePhotoId]) cart[activePhotoId] = {};
 
             renderOptionsList();
@@ -730,19 +791,16 @@
             const list = document.getElementById('options-list');
             list.innerHTML = '';
 
-            // 1. Рендерим основные позиции
             MAIN_PRODUCTS.forEach(prod => {
                 list.innerHTML += createOptionItemHTML(prod);
             });
 
-            // 2. Кнопка "Показать еще варианты"
             const toggleBtn = document.createElement('div');
             toggleBtn.className = 'toggle-more-btn';
             toggleBtn.innerText = showMoreProducts ? 'Скрыть остальные сувениры ▲' : 'Показать остальные сувениры ▼';
             toggleBtn.onclick = toggleMoreProducts;
             list.appendChild(toggleBtn);
 
-            // 3. Дополнительные позиции
             const moreContainer = document.createElement('div');
             moreContainer.className = 'more-products-container';
             moreContainer.style.display = showMoreProducts ? 'flex' : 'none';
@@ -954,7 +1012,6 @@
             photoPointer = 0;
             for (let i = 0; i < 4; i++) updateCell(i);
 
-            // БЫСТРАЯ СМЕНА ФОТО (каждые 1.5 секунды)
             slideshowInterval = setInterval(() => {
                 const randomCell = Math.floor(Math.random() * 4);
                 updateCell(randomCell);
@@ -992,7 +1049,6 @@
 
         function resetIdleTimer() {
             if (idleTimer) clearTimeout(idleTimer);
-            // ВКЛЮЧЕНИЕ СОННОГО РЕЖИМА СПУСТЯ 30 СЕКУНД (30 000 мс)
             idleTimer = setTimeout(startSleep, 30000);
         }
 
