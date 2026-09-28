@@ -157,7 +157,7 @@
             .product-select-layout { grid-template-columns: 1fr; }
         }
 
-        /* --- ИНТЕРАКТИВНЫЙ МАКЕТ ПРЕВЬЮ --- */
+        /* МАКЕТ ПРЕВЬЮ */
         .mockup-wrapper {
             background: #1c1f26;
             border-radius: 14px;
@@ -188,38 +188,24 @@
             align-items: center;
         }
 
-        /* --- СТИЛЬ АКРИЛОВОГО МАГНИТА --- */
+        /* Акриловый магнит */
         .mockup-frame.type-magnet {
             position: relative;
             width: 260px;
             height: 180px;
-            margin-top: -20px;
-            margin-left: -30px;
         }
         .mockup-frame.type-magnet::before {
             content: '';
             position: absolute;
             width: 240px;
             height: 160px;
-            top: 35px;
-            left: 55px;
+            top: 10px;
+            left: 10px;
             background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(220,225,235,0.9) 100%);
             border: 4px solid rgba(200, 210, 225, 0.9);
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             z-index: 1;
-        }
-        .mockup-frame.type-magnet::after {
-            content: '';
-            position: absolute;
-            width: 110px;
-            height: 75px;
-            top: 68px;
-            left: 120px;
-            background: #111111;
-            border-radius: 4px;
-            box-shadow: inset 0 0 4px rgba(255,255,255,0.2);
-            z-index: 2;
         }
         .mockup-frame.type-magnet img {
             position: relative;
@@ -229,8 +215,7 @@
             object-fit: cover;
             border-radius: 8px;
             border: 8px solid rgba(255, 255, 255, 0.85);
-            outline: 2px solid rgba(180, 195, 215, 0.8);
-            box-shadow: 0 12px 28px rgba(0,0,0,0.6), inset 0 0 12px rgba(255,255,255,0.6);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.6);
         }
 
         /* Стандартное фото */
@@ -256,87 +241,52 @@
             display: block;
         }
 
-        /* --- КРУЖКА С ШАБЛОНОМ И ДЕРЕВЯННОЙ РАМКОЙ --- */
+        /* --- КРУЖКА С ФАЙЛОМ-ШАБЛОНОМ --- */
         .mockup-frame.type-mug {
-            width: 210px;
-            height: 220px;
+            width: 280px;
+            height: 180px;
             background: #ffffff;
-            border-radius: 16px 28px 28px 16px;
+            border-radius: 18px 28px 28px 18px;
             position: relative;
-            box-shadow: inset -22px 0 25px rgba(0,0,0,0.2), 0 12px 25px rgba(0,0,0,0.5);
+            box-shadow: inset -22px 0 25px rgba(0,0,0,0.25), 0 12px 25px rgba(0,0,0,0.5);
             border: 2px solid #e2e2e2;
             overflow: visible;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            padding-left: 10px;
+            justify-content: center;
+            padding: 8px;
         }
-        /* Ручка кружки */
         .mockup-frame.type-mug::after {
             content: '';
             position: absolute;
-            right: -38px;
-            top: 35px;
-            width: 34px;
+            right: -36px;
+            top: 25px;
+            width: 32px;
             height: 120px;
-            border: 15px solid #ffffff;
+            border: 14px solid #ffffff;
             border-left: none;
-            border-radius: 0 40px 40px 0;
+            border-radius: 0 35px 35px 0;
             box-shadow: 5px 5px 12px rgba(0,0,0,0.3);
         }
-        /* Шаблон принта на кружке */
-        .mug-print-area {
-            width: 185px;
-            height: 195px;
-            background: linear-gradient(135deg, #4d8226 0%, #68a335 50%, #467821 100%);
-            border-radius: 8px;
+        .mug-template-bg {
             position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-        }
-        /* Деревянная рамка из веток */
-        .mug-wooden-frame {
-            position: absolute;
-            left: 10px;
-            top: 20px;
-            width: 105px;
-            height: 145px;
-            border: 6px double #6d4218;
-            box-shadow: 0 0 0 3px #3d230b, 0 4px 10px rgba(0,0,0,0.5);
-            border-radius: 4px;
-            background: #fff;
-            overflow: hidden;
-            z-index: 2;
-        }
-        .mug-wooden-frame img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            border-radius: 12px;
+            overflow: hidden;
+            background: url('/static/template_tinkerbell.jpg') no-repeat center center;
+            background-size: cover;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.3);
         }
-        /* Иллюстрация феи справа */
-        .mug-fairy-graphic {
+        .mug-user-photo-inside {
             position: absolute;
-            right: 4px;
-            bottom: 10px;
-            width: 70px;
-            height: 150px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-        }
-        .fairy-wings {
-            font-size: 45px;
-            line-height: 0.8;
-            filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
-        }
-        .fairy-character {
-            font-size: 50px;
-            line-height: 0.9;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            left: 17%;
+            top: 15%;
+            width: 39%;
+            height: 68%;
+            object-fit: cover;
+            z-index: 1;
+            border-radius: 2px;
         }
 
         .product-options-list {
@@ -389,9 +339,7 @@
             transition: background 0.2s;
             text-align: center;
         }
-        .toggle-more-btn:hover {
-            background: #e4e8ee;
-        }
+        .toggle-more-btn:hover { background: #e4e8ee; }
 
         .more-products-container {
             display: none;
@@ -570,7 +518,6 @@
         <button class="cart-btn" id="open-cart-btn" onclick="openCartModal()" disabled>Просмотреть корзину</button>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО ПРЕВЬЮ -->
     <div class="modal" id="preview-modal">
         <div class="modal-box">
             <div class="modal-close-icon" onclick="closePreviewModal()" title="Закрыть">×</div>
@@ -579,7 +526,6 @@
                 <div class="mockup-wrapper">
                     <div class="mockup-title" id="mockup-label">Акриловый Магнит 7х10</div>
                     <div class="mockup-frame type-magnet" id="mockup-container">
-                        <!-- Динамическое наполнение создается в JS -->
                         <img id="modal-img" src="" alt="Photo preview">
                     </div>
                 </div>
@@ -724,17 +670,10 @@
             label.innerText = prod.label;
             container.className = `mockup-frame ${prod.style}`;
 
-            // Если выбирают КРУЖКУ — подставляем зеленый шаблон с рамкой и феей
             if (prod.style === 'type-mug') {
                 container.innerHTML = `
-                    <div class="mug-print-area">
-                        <div class="mug-wooden-frame">
-                            <img src="${imgUrl}" alt="User photo">
-                        </div>
-                        <div class="mug-fairy-graphic">
-                            <div class="fairy-wings">🧚‍♀️</div>
-                            <div class="fairy-character">✨</div>
-                        </div>
+                    <div class="mug-template-bg">
+                        <img class="mug-user-photo-inside" src="${imgUrl}" alt="User photo">
                     </div>
                 `;
             } else {
@@ -981,7 +920,7 @@
             updateCartUI();
         }
 
-        /* --- СОННЫЙ РЕЖИМ (SLIDESHOW) --- */
+        /* --- СЛАЙД-ШОУ / СОННЫЙ РЕЖИМ --- */
         let slideshowInterval = null;
         let photoPointer = 0;
 
