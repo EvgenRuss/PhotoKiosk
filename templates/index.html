@@ -243,51 +243,49 @@
 
         /* КРУЖКА С ФАЙЛОМ-ШАБЛОНОМ ФИКСИКИ */
         .mockup-frame.type-mug {
-            width: 280px;
-            height: 180px;
-            background: #ffffff;
-            border-radius: 18px 28px 28px 18px;
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            background: transparent;
+            border-radius: 0;
             position: relative;
-            box-shadow: inset -22px 0 25px rgba(0,0,0,0.25), 0 12px 25px rgba(0,0,0,0.5);
-            border: 2px solid #e2e2e2;
+            box-shadow: none;
+            border: none;
             overflow: visible;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 8px;
+            padding: 0;
         }
         .mockup-frame.type-mug::after {
-            content: '';
-            position: absolute;
-            right: -36px;
-            top: 25px;
-            width: 32px;
-            height: 120px;
-            border: 14px solid #ffffff;
-            border-left: none;
-            border-radius: 0 35px 35px 0;
-            box-shadow: 5px 5px 12px rgba(0,0,0,0.3);
+            display: none;
         }
-        .mug-template-bg {
+
+        .mug-template-container {
             position: relative;
             width: 100%;
-            height: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            background: url('/static/template_fixiki.jpg') no-repeat center center;
-            background-size: cover;
-            box-shadow: inset 0 0 12px rgba(0,0,0,0.3);
+            display: block;
         }
+
+        .mug-template-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
         .mug-user-photo-inside {
             position: absolute;
-            left: 29.5%;
-            top: 25%;
+            left: 32.8%;
+            top: 25.2%;
             width: 32.5%;
-            height: 50.5%;
+            height: 52%;
             object-fit: cover;
-            z-index: 1;
-            border-radius: 4px;
-            transform: rotate(-1deg);
+            z-index: 2;
+            border-radius: 6px;
+            transform: rotate(-1.8deg);
         }
 
         .product-options-list {
@@ -692,7 +690,8 @@
 
             if (prod.style === 'type-mug') {
                 container.innerHTML = `
-                    <div class="mug-template-bg">
+                    <div class="mug-template-container">
+                        <img class="mug-template-img" src="/static/template_fixiki.jpg" alt="Шаблон кружки">
                         <img class="mug-user-photo-inside" src="${imgUrl}" alt="User photo">
                     </div>
                 `;
@@ -790,7 +789,6 @@
             updateCartUI();
         }
 
-        /* --- ФУНКЦИИ ИЗМЕНЕНИЯ/УДАЛЕНИЯ ИЗ КОРЗИНЫ --- */
         function updateCartItemQty(photoId, productId, delta) {
             if (!cart[photoId]) return;
             const currentQty = cart[photoId][productId] || 0;
@@ -805,7 +803,7 @@
 
             updateGalleryCards();
             updateCartUI();
-            openCartModal(); // Перерисовываем список корзины
+            openCartModal();
         }
 
         function removeCartItem(photoId, productId) {
