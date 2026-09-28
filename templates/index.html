@@ -276,18 +276,34 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
 
-    /* ЗАМЕТНЫЙ СДВИГ ВЛЕВО И ВВЕРХ */
-        .mug-user-photo-inside {
-            position: absolute;
-            left: 31.2%;
-            top: 26.5%;
-            width: 31.0%;
-            height: 48.2%;
-            object-fit: cover;
-            z-index: 2;
-            border-radius: 2px;
-            transform: rotate(-3.8deg);
-        }
+    .mug-user-photo-inside {
+    position: absolute;
+    
+    /* 1. ДВИЖЕНИЕ ВЛЕВО / ВПРАВО */
+    /* Уменьшаете % — фото едет ВЛЕВО. Увеличиваете % — фото едет ВПРАВО */
+    left: 20.2%;
+
+    /* 2. ДВИЖЕНИЕ ВВЕРХ / ВНИЗ */
+    /* Уменьшаете % — фото едет ВВЕРХ. Увеличиваете % — фото едет ВНИЗ */
+    top: 20.5%;
+
+    /* 3. ШИРИНА ФОТО */
+    /* Делает фото шире или уже */
+    width: 31.0%;
+
+    /* 4. ВЫСОТА ФОТО */
+    /* Делает фото выше или ниже */
+    height: 48.2%;
+
+    /* 5. УГОЛ НАКЛОНА (ПОВОРОТ) */
+    /* Более отрицательное число (например -4deg, -5deg) — сильнее наклоняет влево */
+    /* Ближе к нулю (например -2deg, -1deg) — выпрямляет фото */
+    transform: rotate(-3.8deg);
+
+    object-fit: cover;
+    z-index: 2;
+    border-radius: 2px;
+}
         .product-options-list {
             display: flex;
             flex-direction: column;
