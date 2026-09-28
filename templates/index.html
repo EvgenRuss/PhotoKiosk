@@ -241,7 +241,7 @@
             display: block;
         }
 
-        /* --- КРУЖКА С ФАЙЛОМ-ШАБЛОНОМ --- */
+        /* КРУЖКА С ФАЙЛОМ-ШАБЛОНОМ */
         .mockup-frame.type-mug {
             width: 280px;
             height: 180px;
@@ -384,6 +384,7 @@
         .btn-confirm { background: #28a745; color: white; }
         .btn-close { background: #6c757d; color: white; }
 
+        /* ЭЛЕМЕНТЫ КОРЗИНЫ */
         .cart-items-container {
             display: flex;
             flex-direction: column;
@@ -404,8 +405,26 @@
             object-fit: cover;
             border-radius: 6px;
         }
-        .cart-item-details { flex-grow: 1; }
-        .cart-item-sub { font-size: 14px; color: #666; }
+        .cart-item-details { flex-grow: 1; text-align: left; }
+        .cart-item-title { font-weight: 600; font-size: 16px; color: #333; }
+        .cart-item-sub { font-size: 14px; color: #666; margin-top: 4px; }
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-delete-item {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-delete-item:hover { background: #bd2130; }
 
         .payment-box {
             text-align: center;
@@ -548,7 +567,7 @@
                 </div>
                 <div>
                     <button class="btn-modal btn-close" onclick="closeCartModal()">Вернуться</button>
-                    <button class="btn-modal btn-confirm" onclick="proceedToPayment()">Перейти к оплате</button>
+                    <button class="btn-modal btn-confirm" id="cart-pay-btn" onclick="proceedToPayment()">Перейти к оплате</button>
                 </div>
             </div>
         </div>
@@ -770,6 +789,34 @@
             updateCartUI();
         }
 
+        /* --- ФУНКЦИИ ИЗМЕНЕНИЯ/УДАЛЕНИЯ ИЗ КОРЗИНЫ --- */
+        function updateCartItemQty(photoId, productId, delta) {
+            if (!cart[photoId]) return;
+            const currentQty = cart[photoId][productId] || 0;
+            const newQty = Math.max(0, currentQty + delta);
+
+            if (newQty === 0) {
+                delete cart[photoId][productId];
+                if (Object.keys(cart[photoId]).length === 0) delete cart[photoId];
+            } else {
+                cart[photoId][productId] = newQty;
+            }
+
+            updateGalleryCards();
+            updateCartUI();
+            openCartModal(); // Перерисовываем список корзины
+        }
+
+        function removeCartItem(photoId, productId) {
+            if (cart[photoId] && cart[photoId][productId]) {
+                delete cart[photoId][productId];
+                if (Object.keys(cart[photoId]).length === 0) delete cart[photoId];
+            }
+            updateGalleryCards();
+            updateCartUI();
+            openCartModal();
+        }
+
         function closePreviewModal() {
             document.getElementById('preview-modal').style.display = 'none';
             activePhotoId = null;
@@ -825,28 +872,41 @@
                 const photoCart = cart[photoId];
                 if (!photo || !photoCart) return;
 
-                const itemsText = Object.keys(photoCart).map(prodId => {
+                Object.keys(photoCart).forEach(prodId => {
                     const prod = ALL_PRODUCTS.find(p => p.id === prodId);
                     const qty = photoCart[prodId];
-                    return `${prod.name} × ${qty} шт. (${prod.price * qty} ₽)`;
-                }).join('<br>');
+                    if (!prod || qty <= 0) return;
 
-                if (itemsText) {
                     hasItems = true;
                     const row = document.createElement('div');
                     row.className = 'cart-item-row';
                     const imgUrl = photo.url || photo.path || `/static/uploads/${photo.filename}`;
+                    
                     row.innerHTML = `
                         <img src="${imgUrl}" alt="Photo">
                         <div class="cart-item-details">
-                            <div class="cart-item-sub">${itemsText}</div>
+                            <div class="cart-item-title">${prod.name}</div>
+                            <div class="cart-item-sub">${prod.price} ₽ × ${qty} шт. = <b>${prod.price * qty} ₽</b></div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <div class="qty-controls">
+                                <button class="btn-qty" onclick="updateCartItemQty('${photoId}', '${prodId}', -1)">-</button>
+                                <span class="qty-value">${qty}</span>
+                                <button class="btn-qty" onclick="updateCartItemQty('${photoId}', '${prodId}', 1)">+</button>
+                            </div>
+                            <button class="btn-delete-item" onclick="removeCartItem('${photoId}', '${prodId}')" title="Удалить">🗑️</button>
                         </div>
                     `;
                     container.appendChild(row);
-                }
+                });
             });
 
-            if (!hasItems) container.innerHTML = '<div>Корзина пуста</div>';
+            if (!hasItems) {
+                container.innerHTML = '<div style="padding: 20px; color: #777;">Корзина пуста</div>';
+                document.getElementById('cart-pay-btn').disabled = true;
+            } else {
+                document.getElementById('cart-pay-btn').disabled = false;
+            }
 
             const { totalPrice } = calculateTotal();
             document.getElementById('cart-modal-total').innerText = `${totalPrice.toLocaleString()} ₽`;
@@ -858,8 +918,10 @@
         }
 
         function proceedToPayment() {
+            const { totalItems, totalPrice } = calculateTotal();
+            if (totalItems === 0) return;
+
             closeCartModal();
-            const { totalPrice } = calculateTotal();
             document.getElementById('payment-amount-display').innerText = `${totalPrice.toLocaleString()} ₽`;
             
             const qrText = encodeURIComponent(`https://qr.nspk.ru/DEMO_PAYMENT?sum=${totalPrice}`);
